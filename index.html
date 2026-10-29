@@ -1,0 +1,2118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Wish Card Studio: design a birthday, anniversary, thank-you or holiday card. Draw, stamp, add photos and wishes, then save it as an image. Free, no sign-up.">
+<meta name="theme-color" content="#D6264A">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Wish Card Studio">
+<meta property="og:description" content="Design a birthday or other greeting card in your browser. Free, no sign-up.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2714%27%20fill%3D%27%23D6264A%27/%3E%3Crect%20x%3D%2712%27%20y%3D%2718%27%20width%3D%2740%27%20height%3D%2728%27%20rx%3D%273%27%20fill%3D%27%23FFE680%27/%3E%3Cpath%20d%3D%27M12%2020l20%2015%2020-15%27%20fill%3D%27none%27%20stroke%3D%27%23C2185B%27%20stroke-width%3D%273%27/%3E%3C/svg%3E">
+<style>:root{color-scheme:light}body{margin:0}[hidden]{display:none!important}</style>
+<title>Wish Card Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Caveat:wght@600;700&family=Figtree:wght@400..700&family=Fredoka:wght@500;700&family=Lobster&family=Pacifico&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+/* Layout: a card laid out on a table. Occasion strip on top, the card large in the middle, tools in a side panel that drops below the card on phones. */
+:root {
+  --bg: #EDEFF6;
+  --surface: #FFFFFF;
+  --surface-2: #F4F5FA;
+  --fg: #191C2A;
+  --muted: #565B74;
+  --line: #D6DAE8;
+  --accent: #D6264A;
+  --accent-fg: #FFFFFF;
+  --table: #D9DEEE;
+  --grid: rgba(25, 28, 42, .07);
+  --focus: #2F5BFF;
+  --shadow: 0 1px 2px rgba(25, 28, 42, .14), 0 14px 34px rgba(25, 28, 42, .2);
+  --font-display: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-body: "Figtree", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12141D;
+    --surface: #1B1E2C;
+    --surface-2: #232738;
+    --fg: #ECEEF8;
+    --muted: #A3A8C2;
+    --line: #32374D;
+    --accent: #FF6B86;
+    --accent-fg: #2A0610;
+    --table: #0C0E15;
+    --grid: rgba(255, 255, 255, .05);
+    --focus: #8FA8FF;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 16px 40px rgba(0, 0, 0, .6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12141D;
+  --surface: #1B1E2C;
+  --surface-2: #232738;
+  --fg: #ECEEF8;
+  --muted: #A3A8C2;
+  --line: #32374D;
+  --accent: #FF6B86;
+  --accent-fg: #2A0610;
+  --table: #0C0E15;
+    --grid: rgba(255, 255, 255, .05);
+  --focus: #8FA8FF;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 16px 40px rgba(0, 0, 0, .6);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.45 var(--font-body);
+  padding-block: 20px 44px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.app { max-width: 1280px; margin: 0 auto; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+header h1 {
+  font: 800 clamp(26px, 5vw, 36px)/1.05 var(--font-display);
+  letter-spacing: -.02em;
+  margin: 0 0 6px;
+  text-wrap: balance;
+}
+header p { margin: 0; color: var(--muted); max-width: 62ch; }
+header .sub { font: 700 clamp(16px, 3vw, 20px)/1.2 var(--font-display); color: var(--accent); letter-spacing: .01em; margin: 0 0 10px; max-width: none; }
+
+.occasions { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 4px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  font: 600 14px var(--font-body);
+  padding: 7px 14px 7px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--fg);
+  cursor: pointer;
+}
+.chip i { width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .25); display: block; }
+.chip:hover { border-color: var(--muted); }
+.chip[aria-checked="true"] { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+
+.studio {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 20px;
+  align-items: start;
+  margin-top: 12px;
+}
+@media (max-width: 920px) { .studio { grid-template-columns: minmax(0, 1fr); } }
+.stage { min-width: 0; }
+.table {
+  position: relative;
+  background-color: var(--table);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  padding: clamp(14px, 3.4vw, 36px);
+  border-radius: 12px;
+}
+.sheet { position: relative; }
+.sheet::before, .sheet::after {
+  content: ""; position: absolute; z-index: 2; pointer-events: none;
+  width: 92px; height: 26px; top: -10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .22);
+  background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, .3) 0 6px, transparent 6px 12px);
+}
+.sheet::before { left: -24px; transform: rotate(-38deg); background-color: rgba(255, 196, 0, .78); }
+.sheet::after { right: -24px; transform: rotate(38deg); background-color: rgba(255, 92, 122, .74); }
+canvas#card {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  border-radius: 3px;
+  box-shadow: var(--shadow);
+  background: #fff;
+  touch-action: none;
+  cursor: crosshair;
+}
+canvas#card.c-text { cursor: text; }
+canvas#card.c-stamp { cursor: copy; }
+canvas#card.c-move { cursor: grab; }
+canvas#fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+.actions .spacer { flex: 1 1 16px; }
+.btn {
+  display: inline-block;
+  font: 600 14px var(--font-body);
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--fg);
+  cursor: pointer;
+  text-align: center;
+}
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+.btn.wide { width: 100%; }
+.btn.mini { padding: 6px 10px; font-size: 13px; }
+.status { min-height: 1.4em; margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+@media (min-width: 921px) {
+  .panel { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; }
+}
+.label, .group > summary, .sel h2 {
+  font: 700 11px/1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  color: var(--muted);
+}
+details.group { border-top: 1px solid var(--line); padding-top: 14px; }
+details.group:first-of-type { border-top: 0; padding-top: 0; }
+details.group > summary {
+  cursor: pointer; list-style: none;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+details.group > summary::-webkit-details-marker { display: none; }
+details.group > summary::after { content: "+"; font-size: 16px; letter-spacing: 0; }
+details.group[open] > summary::after { content: "\2013"; }
+.sel { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.sel h2 { margin: 0; }
+
+.row { display: flex; gap: 8px; }
+.row.wrap { flex-wrap: wrap; }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); flex: 1; min-width: 0; }
+input[type="text"], textarea, select {
+  font: 15px var(--font-body);
+  color: var(--fg);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  width: 100%;
+  min-width: 0;
+}
+.sel input[type="text"], .sel select { background: var(--surface); }
+textarea { resize: vertical; min-height: 64px; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+
+.tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.tool {
+  font: 600 13px var(--font-body);
+  padding: 8px 0;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--fg);
+  cursor: pointer;
+}
+.tool:hover { border-color: var(--muted); }
+.tool[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sw { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); cursor: pointer; padding: 0; }
+.sw[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--fg); }
+input[type="color"] { width: 32px; height: 32px; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: none; cursor: pointer; }
+.slider { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+.slider b { color: var(--fg); font-variant-numeric: tabular-nums; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.check { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.check input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+.stamps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.stamp {
+  font-size: 22px; line-height: 1.25;
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.stamp:hover { border-color: var(--line); }
+.stamp[aria-pressed="true"] { border-color: var(--accent); }
+.hint { margin: 0; font-size: 13px; color: var(--muted); }
+.sides { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; }
+.side-tab { font: 700 14px var(--font-body); padding: 7px 20px; border-radius: 999px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.side-tab[aria-selected="true"] { background: var(--accent); color: var(--accent-fg); }
+.actions .check { margin-left: 4px; }
+
+/* ---------- opening screen ---------- */
+.open {
+  position: fixed; inset: 0; z-index: 100; overflow-y: auto; display: flex;
+  color: #fff;
+  background: radial-gradient(120% 90% at 50% 0%, #2D3E86 0%, #18214F 48%, #0C1230 100%);
+  padding-block: max(20px, env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  transition: opacity .6s ease, visibility 0s linear .6s;
+}
+.open.is-leaving { opacity: 0; visibility: hidden; }
+#openFx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.balloons { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.balloon {
+  position: absolute; bottom: -140px;
+  width: var(--w); height: calc(var(--w) * 1.25);
+  border-radius: 50% 50% 48% 48% / 56% 56% 44% 44%;
+  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .55), transparent 28%), var(--c);
+  box-shadow: inset -8px -10px 18px rgba(0, 0, 0, .2);
+  animation: rise var(--d) linear var(--dl) infinite;
+}
+.balloon::before {
+  content: ""; position: absolute; left: 50%; bottom: -7px; width: 10px; height: 10px;
+  background: var(--c); border-radius: 2px; transform: translateX(-50%) rotate(45deg); filter: brightness(.82);
+}
+.balloon::after {
+  content: ""; position: absolute; left: 50%; top: 100%; width: 1.5px; height: 80px;
+  background: rgba(255, 255, 255, .5); transform: translateX(-50%);
+}
+@keyframes rise {
+  0%   { transform: translate(0, 0) rotate(-4deg); }
+  50%  { transform: translate(var(--sw), -62vh) rotate(4deg); }
+  100% { transform: translate(0, -135vh) rotate(-4deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .balloon { animation: none; bottom: var(--bot); }
+  .open { transition: none; }
+}
+.open-in {
+  position: relative; z-index: 2; margin: auto; width: min(560px, 100%);
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.eyebrow { font: 700 13px/1.2 var(--font-body); letter-spacing: .16em; text-transform: uppercase; color: #FFD36E; margin: 0 0 10px; }
+.open h2 { font: 800 clamp(38px, 9vw, 64px)/.98 var(--font-display); letter-spacing: -.025em; margin: 0; text-wrap: balance; }
+.open-line { margin: 12px 0 0; color: #C8D0F5; font-size: 15px; }
+
+.env {
+  position: relative; width: min(320px, 78vw); aspect-ratio: 1.55; margin: 34px auto 26px;
+  perspective: 900px; cursor: pointer;
+  filter: drop-shadow(0 18px 22px rgba(0, 0, 0, .4));
+  transition: transform .3s ease;
+}
+.env:hover { transform: translateY(-4px) rotate(-1deg); }
+.env > * { position: absolute; }
+.env-back { inset: 0; background: #A81F3E; border-radius: 6px; }
+.env-card {
+  left: 6%; right: 6%; top: 8%; bottom: 6%; z-index: 2; border-radius: 4px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  padding: 8px; text-align: center;
+  background: #FFE680; color: #C2185B;
+  font: 400 clamp(15px, 4.4vw, 21px)/1.15 "Pacifico", cursive;
+  transition: transform .9s cubic-bezier(.2, .8, .2, 1) .45s, background .3s ease, color .3s ease;
+}
+.env-card .e { font-size: clamp(24px, 7vw, 34px); line-height: 1.1; }
+.env-front {
+  inset: 0; z-index: 3; border-radius: 6px;
+  background: linear-gradient(160deg, #E8445F, #CC2D4B);
+  clip-path: polygon(0 0, 50% 66%, 100% 0, 100% 100%, 0 100%);
+}
+.env-flap {
+  left: 0; right: 0; top: 0; height: 66%; z-index: 5; transform-origin: top;
+  background: linear-gradient(#F0627C, #D63A57);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transition: transform .6s ease, z-index 0s linear .3s;
+}
+.env-seal {
+  left: 50%; top: 62%; width: 15%; aspect-ratio: 1; z-index: 6; transform: translate(-50%, -50%);
+  border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%, #FFE08A, #D99A1F);
+  color: #7A4C00; font-size: clamp(12px, 3.4vw, 18px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .3);
+  transition: opacity .3s ease;
+}
+.env.is-open .env-flap { transform: rotateX(180deg); z-index: 1; }
+.env.is-open .env-card { transform: translateY(-60%) scale(1.04); }
+.env.is-open .env-seal { opacity: 0; }
+
+.open-form { width: 100%; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+.open-field { display: flex; flex-direction: column; gap: 6px; width: min(360px, 100%); font-size: 14px; color: #C8D0F5; text-align: left; }
+.open-field input {
+  font: 600 17px var(--font-body); color: #fff; width: 100%;
+  background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .3); border-radius: 10px; padding: 11px 14px;
+}
+.open-field input::placeholder { color: rgba(255, 255, 255, .45); }
+.ochips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.ochip {
+  display: inline-flex; align-items: center; gap: 7px; font: 600 13px var(--font-body);
+  padding: 6px 12px 6px 8px; border-radius: 999px; cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, .3); background: rgba(255, 255, 255, .08); color: #fff;
+}
+.ochip i { width: 14px; height: 14px; border-radius: 50%; display: block; border: 1px solid rgba(255, 255, 255, .55); }
+.ochip[aria-checked="true"] { background: #fff; color: #14214F; border-color: #fff; }
+.open-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 4px; }
+.open-btn { font: 700 16px var(--font-body); padding: 12px 26px; border-radius: 999px; border: 0; background: #FFD36E; color: #2A1C00; cursor: pointer; }
+.open-btn.ghost { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, .5); }
+.open-btn:disabled { opacity: .6; cursor: default; }
+.open :focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.env-hint { margin: -10px 0 18px; font-size: 13px; color: #9FAAD9; }
+
+[hidden] { display: none !important; }
+#recents .sw { width: 24px; height: 24px; }
+
+/* share dialog */
+.dlg { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 16px; background: rgba(12, 14, 24, .6); }
+.dlg-box {
+  background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 14px; padding: 20px;
+  width: min(520px, 100%); max-height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow);
+}
+.dlg-box h2 { font: 800 22px/1.1 var(--font-display); margin: 0; }
+.dlg-box input[type="text"] { font-size: 14px; }
+
+/* recipient view */
+.viewbar {
+  display: none; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin: 16px 0 0; padding: 12px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+}
+.viewbar p { margin: 0; font-weight: 600; }
+body.is-viewer .viewbar { display: flex; }
+body.is-viewer .panel, body.is-viewer .occasions, body.is-viewer header p:not(.sub),
+body.is-viewer #undo, body.is-viewer #redo, body.is-viewer #clear, body.is-viewer #shareBtn { display: none !important; }
+body.is-viewer .studio { grid-template-columns: minmax(0, 1fr); max-width: 940px; margin-left: auto; margin-right: auto; }
+body.is-viewer canvas#card { cursor: default; }
+
+/* printing: only the card, on a clean page */
+@media print {
+  @page { size: landscape; margin: 10mm; }
+  body { background: #fff !important; padding: 0 !important; }
+  .app > header, .occasions, .sides, .actions, .status, .panel, .viewbar, .open, .dlg, #fx { display: none !important; }
+  .studio { display: block !important; max-width: none !important; }
+  .table { background: none !important; padding: 0 !important; }
+  .sheet::before, .sheet::after { display: none !important; }
+  canvas#card { box-shadow: none !important; border-radius: 0 !important; width: 100% !important; }
+}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Wish Card Studio</h1>
+    <p class="sub">Dennis Interface For Wishes</p>
+    <p>Pick an occasion, then draw, stamp, add photos and write your wishes on the card. Save it as an image to send.</p>
+  </header>
+
+  <div class="viewbar" id="viewbar">
+    <p id="viewMsg">A card for you.</p>
+    <div class="row wrap">
+      <button class="btn primary" id="makeOwn" type="button">Make my own card</button>
+      <button class="btn" id="editCopy" type="button">Edit a copy</button>
+      <button class="btn" id="viewBoth" type="button">Save both sides</button>
+    </div>
+  </div>
+
+  <div class="occasions" id="occasions" role="radiogroup" aria-label="Occasion"></div>
+
+  <main class="studio">
+    <section class="stage">
+      <div class="sides" role="tablist" aria-label="Card side">
+        <button class="side-tab" id="tabFront" type="button" role="tab" aria-selected="true">Front</button>
+        <button class="side-tab" id="tabInside" type="button" role="tab" aria-selected="false">Inside</button>
+      </div>
+      <div class="table" id="table">
+        <div class="sheet"><canvas id="card" width="1800" height="1200" aria-label="Greeting card. Draw here."></canvas></div>
+        <canvas id="fx" aria-hidden="true"></canvas>
+      </div>
+      <div class="actions">
+        <button class="btn" id="undo" type="button">Undo</button>
+        <button class="btn" id="redo" type="button">Redo</button>
+        <button class="btn" id="clear" type="button">Clear card</button>
+        <button class="btn" id="celebrate" type="button">Celebrate</button>
+        <label class="check" for="sound"><input type="checkbox" id="sound" checked> Sound</label>
+        <span class="spacer"></span>
+        <button class="btn" id="shareBtn" type="button">Share</button>
+        <button class="btn primary" id="savePng" type="button">Save as PNG</button>
+      </div>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <aside class="panel">
+      <div class="sel" id="selGroup" hidden>
+        <h2>Selected item</h2>
+        <div class="row wrap">
+          <button class="btn mini" id="smaller" type="button">Smaller</button>
+          <button class="btn mini" id="larger" type="button">Larger</button>
+          <button class="btn mini" id="dup" type="button">Duplicate</button>
+          <button class="btn mini" id="front" type="button">To front</button>
+          <button class="btn mini" id="back" type="button">To back</button>
+          <button class="btn mini" id="del" type="button">Delete</button>
+        </div>
+        <div class="slider" id="rotRow">
+          <label for="rot">Rotate <b id="rotOut">0&deg;</b></label>
+          <input type="range" id="rot" min="-180" max="180" value="0">
+        </div>
+        <div class="stack" id="imgOpts" hidden>
+          <label class="check" for="round"><input type="checkbox" id="round"> Round photo</label>
+          <label class="check" for="border"><input type="checkbox" id="border"> White border</label>
+          <label class="field" for="imgFx">Photo look
+            <select id="imgFx">
+              <option value="none">Original</option>
+              <option value="bw">Black and white</option>
+              <option value="sepia">Sepia</option>
+              <option value="warm">Warm</option>
+              <option value="vivid">Vivid</option>
+              <option value="soft">Soft</option>
+            </select>
+          </label>
+        </div>
+        <div class="stack" id="textOpts" hidden>
+          <label class="check" for="selOutline"><input type="checkbox" id="selOutline"> Outline the letters</label>
+          <button class="btn mini" id="useMsg" type="button">Replace with message box text</button>
+        </div>
+        <p class="hint">Pick an ink colour to recolour the selected item. Arrow keys nudge it.</p>
+      </div>
+
+      <details class="group" open>
+        <summary>Greeting</summary>
+        <div class="stack">
+          <div class="row">
+            <label class="field" for="to">For<input type="text" id="to" maxlength="40" autocomplete="off"></label>
+            <label class="field" for="from">From<input type="text" id="from" maxlength="40" autocomplete="off"></label>
+          </div>
+          <button class="btn wide" id="greet" type="button">Add greeting</button>
+          <button class="btn wide" id="wish" type="button">Suggest a wish</button>
+          <button class="btn wide" id="dateBtn" type="button">Add today's date</button>
+        </div>
+      </details>
+
+      <details class="group" open>
+        <summary>Tool</summary>
+        <div class="tools" id="tools"></div>
+        <div class="stack" id="brushRow" style="margin-top:12px">
+          <label class="field" for="brush">Brush style
+            <select id="brush">
+              <option value="pen">Pen</option>
+              <option value="marker">Marker</option>
+              <option value="rainbow">Rainbow</option>
+              <option value="sparkle">Sparkle</option>
+            </select>
+          </label>
+          <label class="check" for="mirror"><input type="checkbox" id="mirror"> Mirror drawing (kaleidoscope)</label>
+        </div>
+        <div class="stack" id="shapeRow" hidden style="margin-top:12px">
+          <label class="field" for="shapeKind">Shape
+            <select id="shapeKind">
+              <option value="heart">Heart</option>
+              <option value="star">Star</option>
+              <option value="flower">Flower</option>
+              <option value="sun">Sun</option>
+              <option value="cloud">Cloud</option>
+              <option value="bubble">Speech bubble</option>
+            </select>
+          </label>
+        </div>
+        <div class="stack" id="textGroup" hidden style="margin-top:12px">
+          <label class="field" for="msg">Message to place
+            <textarea id="msg" maxlength="200"></textarea>
+          </label>
+          <label class="field" for="font">Lettering
+            <select id="font"></select>
+          </label>
+          <label class="check" for="outline"><input type="checkbox" id="outline"> Outline the letters</label>
+        </div>
+        <label class="check" id="fillRow" hidden for="fill" style="margin-top:12px"><input type="checkbox" id="fill"> Fill shapes</label>
+      </details>
+
+      <details class="group" open>
+        <summary>Ink</summary>
+        <div class="swatches" id="swatches"></div>
+        <div class="swatches" id="recents" aria-label="Recent colours" style="margin-top:10px" hidden></div>
+        <button class="btn mini" id="eyedrop" type="button" style="margin-top:10px" hidden>Pick a colour from the screen</button>
+        <div class="slider" style="margin-top:12px">
+          <label for="size">Size <b id="sizeOut">8</b></label>
+          <input type="range" id="size" min="1" max="40" value="8">
+        </div>
+      </details>
+
+      <details class="group" open>
+        <summary>Stamps and photos</summary>
+        <div class="stack">
+          <div class="stamps" id="stamps"></div>
+          <label class="btn wide" for="photoFile">Add a photo</label>
+          <input class="sr-only" type="file" id="photoFile" accept="image/*">
+        </div>
+      </details>
+
+      <details class="group" open>
+        <summary>Decorate</summary>
+        <div class="stack">
+          <button class="btn wide" id="decoBunting" type="button">Add bunting banner</button>
+          <button class="btn wide" id="decoBorder" type="button">Add emoji border</button>
+          <button class="btn wide" id="decoSprinkle" type="button">Sprinkle sparkles</button>
+          <p class="hint">Added to the side you are on. Undo removes each one in a single step.</p>
+        </div>
+      </details>
+
+      <details class="group">
+        <summary>Paper and frame</summary>
+        <div class="stack">
+          <label class="field" for="paper">Pattern
+            <select id="paper">
+              <option value="plain">Plain</option>
+              <option value="confetti">Confetti</option>
+              <option value="dots">Polka dots</option>
+              <option value="stripes">Stripes</option>
+              <option value="stars">Stars</option>
+              <option value="gradient">Soft gradient</option>
+            </select>
+          </label>
+          <label class="field" for="frame">Frame
+            <select id="frame">
+              <option value="none">None</option>
+              <option value="line">Single line</option>
+              <option value="double">Double line</option>
+              <option value="dotted">Dotted</option>
+              <option value="scallop">Scalloped</option>
+            </select>
+          </label>
+          <div class="row" style="align-items:flex-end">
+            <label class="field" for="paperColor">Paper colour<input type="color" id="paperColor" value="#ffe680"></label>
+            <button class="btn" id="paperReset" type="button">Use occasion colour</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="group">
+        <summary>Card file</summary>
+        <div class="stack">
+          <button class="btn wide" id="printBtn" type="button">Print this side</button>
+          <button class="btn wide" id="saveBoth" type="button">Save both sides as one image</button>
+          <button class="btn wide" id="saveJpg" type="button">Save as JPG</button>
+          <button class="btn wide" id="saveProj" type="button">Save project file</button>
+          <label class="btn wide" for="openFile">Open project file</label>
+          <input class="sr-only" type="file" id="openFile" accept=".json,application/json">
+          <p class="hint">A project file keeps every item editable, so you can finish the card later.</p>
+        </div>
+      </details>
+    </aside>
+  </main>
+</div>
+
+
+<div class="open" id="open" role="dialog" aria-modal="true" aria-labelledby="openTitle">
+  <canvas id="openFx" aria-hidden="true"></canvas>
+  <div class="balloons" id="balloons" aria-hidden="true"></div>
+  <div class="open-in">
+    <p class="eyebrow">Dennis Interface For Wishes</p>
+    <h2 id="openTitle">Wish Card Studio</h2>
+    <p class="open-line" id="openLine"></p>
+    <div class="env" id="env" role="button" tabindex="0" aria-label="Open the envelope">
+      <div class="env-back"></div>
+      <div class="env-card" id="miniCard"><span id="miniHead"></span><span class="e" id="miniEmoji"></span></div>
+      <div class="env-front"></div>
+      <div class="env-flap"></div>
+      <div class="env-seal" aria-hidden="true">&#10084;</div>
+    </div>
+    <p class="env-hint">Tap the envelope, or fill in the details below.</p>
+    <div class="open-form">
+      <label class="open-field" for="openName">Who is the card for?
+        <input type="text" id="openName" maxlength="40" placeholder="Their name" autocomplete="off">
+      </label>
+      <div class="ochips" id="ochips" role="radiogroup" aria-label="Occasion"></div>
+      <div class="open-actions">
+        <button class="open-btn" id="openGo" type="button">Open the studio</button>
+        <button class="open-btn ghost" id="openCont" type="button" hidden>Continue my last card</button>
+      </div>
+    </div>
+    <div class="open-actions" id="viewOpen" hidden>
+      <button class="open-btn" id="viewGo" type="button" disabled>Opening your card&hellip;</button>
+    </div>
+  </div>
+</div>
+
+<div class="dlg" id="shareDlg" role="dialog" aria-modal="true" aria-labelledby="shareTitle" hidden>
+  <div class="dlg-box">
+    <h2 id="shareTitle">Share this card</h2>
+    <p class="hint" id="shareNote"></p>
+    <label class="field" for="shareUrl">Card link
+      <input type="text" id="shareUrl" readonly>
+    </label>
+    <div class="row wrap">
+      <button class="btn primary" id="copyLink" type="button">Copy link</button>
+      <button class="btn" id="nativeShare" type="button" hidden>Share&hellip;</button>
+      <button class="btn" id="shareImg" type="button" hidden>Share picture</button>
+      <button class="btn" id="shareClose" type="button">Close</button>
+    </div>
+    <p class="hint" id="shareMsg" role="status" aria-live="polite"></p>
+  </div>
+</div>
+
+<script>
+(() => {
+  const W = 900, H = 600, S = 2;
+  const KEY = 'wish-card-studio-v1';
+  const EMOJI = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  const PAPERS = ['plain', 'confetti', 'dots', 'stripes', 'stars', 'gradient'];
+  const FRAMES = ['none', 'line', 'double', 'dotted', 'scallop'];
+
+  const OCC = {
+    'Birthday':        { paper: '#FFE680', ink: '#C2185B', stamp: '🎂', head: 'Happy Birthday',    sub: 'Wishing you a day full of joy and cake.' },
+    'Anniversary':     { paper: '#FFD1DC', ink: '#8E1B3A', stamp: '❤️', head: 'Happy Anniversary', sub: 'Celebrating the love you share.' },
+    'Congratulations': { paper: '#C8F2D4', ink: '#0B6B3A', stamp: '🎉', head: 'Congratulations',   sub: 'So proud of everything you have done.' },
+    'Thank You':       { paper: '#CFE4FF', ink: '#14407A', stamp: '🙏', head: 'Thank You',         sub: 'Your kindness means more than you know.' },
+    'Get Well Soon':   { paper: '#E4D6FF', ink: '#4A2A8F', stamp: '🌻', head: 'Get Well Soon',     sub: 'Sending you rest, sunshine and strength.' },
+    'Holiday Wishes':  { paper: '#1F4D3F', ink: '#FFE9A0', stamp: '⭐', head: 'Happy Holidays',    sub: 'Warm wishes for you and your family.' },
+    'Custom':          { paper: '#FFFFFF', ink: '#222222', stamp: '✨', head: 'Best Wishes',       sub: 'Thinking of you.' }
+  };
+
+  const PAT = { 'Birthday': 'confetti', 'Anniversary': 'dots', 'Congratulations': 'confetti', 'Thank You': 'dots',
+                'Get Well Soon': 'gradient', 'Holiday Wishes': 'stars', 'Custom': 'plain' };
+  const DECOR = {
+    'Birthday':        ['🎂','🎈','🎈','🎁','🎉'],
+    'Anniversary':     ['❤️','🌹','💖','🥂','✨'],
+    'Congratulations': ['🏆','🎉','🎊','👏','⭐'],
+    'Thank You':       ['🙏','🌸','💝','🌻','✨'],
+    'Get Well Soon':   ['🌻','🌈','☀️','🦋','💖'],
+    'Holiday Wishes':  ['🎄','⭐','🎆','🎁','🕯️'],
+    'Custom':          ['✨','🌈','💖','⭐','🎀']
+  };
+  const WISHES = {
+    'Birthday': [
+      'May your day be filled with laughter, cake and the people you love.',
+      'Another year older, another year more wonderful. Happy birthday!',
+      'Wishing you good health, great joy and everything you hoped for this year.',
+      'Make a wish, blow out the candles, and enjoy every single second.',
+      'Cheers to you today and to all the good things ahead.'
+    ],
+    'Anniversary': [
+      'Every year with you is my favourite year so far.',
+      'Thank you for the laughter, the patience and the love you give.',
+      'Here is to many more years of us, side by side.',
+      'You make ordinary days feel like celebrations.',
+      'Happy anniversary to the one who still makes my heart skip.'
+    ],
+    'Congratulations': [
+      'You worked hard for this and you earned every bit of it.',
+      'We are cheering for you today and always. Well done!',
+      'What an achievement. The best is still ahead of you.',
+      'Your effort and courage paid off. So proud of you!',
+      'Celebrate loudly today. You deserve it.'
+    ],
+    'Thank You': [
+      'Thank you for being there when it mattered most.',
+      'Your kindness made my week, and I will not forget it.',
+      'I am so grateful for you and everything you do.',
+      'A heartfelt thank you for your time, help and care.',
+      'People like you make the world a better place.'
+    ],
+    'Get Well Soon': [
+      'Rest well, drink your tea and come back stronger.',
+      'Thinking of you and sending all my warmest wishes for a quick recovery.',
+      'Take all the time you need. We are here when you are ready.',
+      'Sending sunshine to brighten your recovery.',
+      'Get well soon. Life is not the same without your smile.'
+    ],
+    'Holiday Wishes': [
+      'Wishing you peace, joy and good company this season.',
+      'May your holidays be warm, bright and full of love.',
+      'Warm wishes to you and your family for a wonderful holiday.',
+      'May the season bring you rest, laughter and good food.',
+      'Here is to a new year full of hope and happiness.'
+    ],
+    'Custom': [
+      'Sending you a little note to say you are on my mind.',
+      'Wishing you joy, today and every day.',
+      'You are appreciated more than you know.',
+      'Thinking of you and smiling.',
+      'Best wishes from my heart to yours.'
+    ]
+  };
+  const FONTS = {
+    'Pacifico':            { w: 400, fb: 'cursive',    label: 'Script' },
+    'Caveat':              { w: 700, fb: 'cursive',    label: 'Handwritten' },
+    'Lobster':             { w: 400, fb: 'cursive',    label: 'Lobster' },
+    'Permanent Marker':    { w: 400, fb: 'cursive',    label: 'Marker pen' },
+    'Fredoka':             { w: 700, fb: 'sans-serif', label: 'Round' },
+    'Bricolage Grotesque': { w: 800, fb: 'sans-serif', label: 'Bold' }
+  };
+  const FX = {
+    bw: 'grayscale(1)', sepia: 'sepia(.85)', warm: 'sepia(.35) saturate(1.3) hue-rotate(-10deg)',
+    vivid: 'saturate(1.6) contrast(1.08)', soft: 'brightness(1.08) contrast(.9) saturate(.9)'
+  };
+  const fontStr = (f, s) => { const d = FONTS[f] || FONTS.Pacifico; return `${d.w} ${s}px "${f}", ${d.fb}`; };
+
+  const STAMPS = ['🎂','🎈','🎁','🎉','🎊','🥳','❤️','💖','💝','🌹','🌸','🌻','⭐','✨','🌈','☀️','🌙','🦋',
+                  '🍰','🧁','🍾','🥂','🍕','☕','🎀','🕯️','🎄','🎆','🎵','🙏','🐶','🐱','🐣','🎓','🏆','👏'];
+  const INKS = ['#1B1B1F','#D6264A','#F57C00','#FFC400','#2E9E5B','#0097A7','#1E6FE0','#7B3FD1','#E91E8C','#7A4B2A','#FFFFFF'];
+  const TOOLS = [
+    ['brush','Brush'], ['eraser','Eraser'], ['line','Line'], ['rect','Box'],
+    ['oval','Oval'], ['shape','Shape'], ['text','Text'], ['stamp','Stamp'], ['move','Move']
+  ];
+  const HINTS = {
+    brush: 'Drag on the card to draw.',
+    eraser: 'Drag to rub out what you have drawn.',
+    line: 'Drag to draw a straight line.',
+    rect: 'Drag to draw a box.',
+    oval: 'Drag to draw an oval.',
+    shape: 'Click the card to place a shape. Size sets how big.',
+    text: 'Click the card to place your message.',
+    stamp: 'Click the card to place a stamp. Size sets how big.',
+    move: 'Click an item to select it, then drag it. Delete removes it.'
+  };
+
+  const $ = s => document.querySelector(s);
+  const cv = $('#card'), ctx = cv.getContext('2d');
+  const layer = document.createElement('canvas');
+  layer.width = W * S; layer.height = H * S;
+  const lc = layer.getContext('2d');
+
+  const st = {
+    occ: 'Birthday', tool: 'brush', color: OCC['Birthday'].ink, size: 8, fill: false, brush: 'pen', outline: false,
+    stamp: '🎂', font: 'Pacifico', msg: 'Wishing you the very best',
+    paper: 'confetti', paperColor: null, frame: 'none',
+    to: 'Ama', from: '', objs: [], other: [], side: 'front', sound: true, mirror: false, shapeKind: 'heart', sel: -1, wishIdx: 0
+  };
+  const IMGS = {}, imgEls = {};
+  let draft = null, drag = null, hist = [], hi = -1, sideHist = {}, ac = null, dl = null, raf = 0, pt = 0, nt = 0, warned = false;
+
+  const rad = d => (d || 0) * Math.PI / 180;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  let viewer = false, recents = [];
+  const canRotate = o => o.t === 'stamp' || o.t === 'text' || o.t === 'img' || o.t === 'shape';
+
+  function getImg(id) {
+    if (!imgEls[id] && IMGS[id]) {
+      const im = new Image();
+      im.onload = () => queueRender();
+      im.src = IMGS[id];
+      imgEls[id] = im;
+    }
+    return imgEls[id] || null;
+  }
+
+  /* ---------- colour helpers ---------- */
+  function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  function mix(a, b, t) {
+    const x = hexToRgb(a), y = hexToRgb(b);
+    return '#' + [0, 1, 2].map(i => Math.round(x[i] + (y[i] - x[i]) * t).toString(16).padStart(2, '0')).join('');
+  }
+  function lum(h) { const c = hexToRgb(h); return (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 255; }
+  const paperCol = () => st.paperColor || OCC[st.occ].paper;
+  const inkCol = () => OCC[st.occ].ink;
+
+  /* ---------- drawing ---------- */
+  function star4(c, x, y, r) {
+    c.beginPath();
+    c.moveTo(x, y - r); c.lineTo(x + r * .28, y - r * .28); c.lineTo(x + r, y); c.lineTo(x + r * .28, y + r * .28);
+    c.lineTo(x, y + r); c.lineTo(x - r * .28, y + r * .28); c.lineTo(x - r, y); c.lineTo(x - r * .28, y - r * .28);
+    c.closePath(); c.fill();
+  }
+  function shapePath(c, hw, hh, round) {
+    c.beginPath();
+    if (round) c.ellipse(0, 0, hw, hh, 0, 0, 6.2832); else c.rect(-hw, -hh, hw * 2, hh * 2);
+  }
+
+  function drawStroke(c, o) {
+    const erase = o.t === 'erase', p = o.pts, b = erase ? 'pen' : (o.b || 'pen');
+    if (erase) c.globalCompositeOperation = 'destination-out';
+    c.strokeStyle = c.fillStyle = erase ? '#000' : o.c;
+    c.lineWidth = o.w;
+    if (b === 'marker') { c.globalAlpha = .4; c.lineWidth = o.w * 2; }
+    if (b === 'rainbow') {
+      if (p.length < 2) { c.fillStyle = 'hsl(0,90%,55%)'; c.beginPath(); c.arc(p[0][0], p[0][1], o.w / 2, 0, 6.2832); c.fill(); return; }
+      for (let i = 1; i < p.length; i++) {
+        c.strokeStyle = `hsl(${(i * 9) % 360},90%,55%)`;
+        c.beginPath(); c.moveTo(p[i - 1][0], p[i - 1][1]); c.lineTo(p[i][0], p[i][1]); c.stroke();
+      }
+      return;
+    }
+    if (b === 'sparkle') c.lineWidth = Math.max(1.5, o.w * .35);
+    if (p.length < 2) {
+      c.beginPath(); c.arc(p[0][0], p[0][1], (b === 'sparkle' ? o.w * .3 : c.lineWidth / 2), 0, 6.2832); c.fill();
+    } else {
+      c.beginPath(); c.moveTo(p[0][0], p[0][1]);
+      for (let i = 1; i < p.length - 1; i++) {
+        const mx = (p[i][0] + p[i + 1][0]) / 2, my = (p[i][1] + p[i + 1][1]) / 2;
+        c.quadraticCurveTo(p[i][0], p[i][1], mx, my);
+      }
+      const l = p[p.length - 1]; c.lineTo(l[0], l[1]); c.stroke();
+    }
+    if (b === 'sparkle') {
+      const sd = o.seed || 1;
+      for (let i = 0; i < p.length; i += 3) {
+        const h1 = Math.abs(Math.sin((i + 1) * 12.9898 + sd * 78.233));
+        const h2 = Math.abs(Math.sin((i + 1) * 39.346 + sd * 11.135));
+        star4(c, p[i][0] + (h1 - .5) * o.w * 3, p[i][1] + (h2 - .5) * o.w * 3, o.w * (.6 + h2 * 1.4));
+      }
+    }
+  }
+
+  function drawObj(c, o) {
+    c.save();
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    switch (o.t) {
+      case 'stroke':
+      case 'erase': drawStroke(c, o); break;
+      case 'line': {
+        c.strokeStyle = o.c; c.lineWidth = o.w;
+        c.beginPath(); c.moveTo(o.x1, o.y1); c.lineTo(o.x2, o.y2); c.stroke();
+        break;
+      }
+      case 'rect': {
+        c.strokeStyle = c.fillStyle = o.c; c.lineWidth = o.w;
+        const x = Math.min(o.x1, o.x2), y = Math.min(o.y1, o.y2);
+        const w = Math.abs(o.x2 - o.x1), h = Math.abs(o.y2 - o.y1);
+        if (o.f) c.fillRect(x, y, w, h); else c.strokeRect(x, y, w, h);
+        break;
+      }
+      case 'oval': {
+        c.strokeStyle = c.fillStyle = o.c; c.lineWidth = o.w;
+        c.beginPath();
+        c.ellipse((o.x1 + o.x2) / 2, (o.y1 + o.y2) / 2, Math.abs(o.x2 - o.x1) / 2, Math.abs(o.y2 - o.y1) / 2, 0, 0, 6.2832);
+        if (o.f) c.fill(); else c.stroke();
+        break;
+      }
+      case 'stamp': {
+        c.translate(o.x, o.y); c.rotate(rad(o.r));
+        c.font = `${o.s}px ${EMOJI}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.fillText(o.e, 0, 0);
+        break;
+      }
+      case 'text': {
+        const L = o.s.split('\n'), lh = o.size * 1.2;
+        c.translate(o.x, o.y + (L.length - 1) * lh / 2); c.rotate(rad(o.r));
+        c.font = fontStr(o.f, o.size); c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.fillStyle = o.c;
+        if (o.ol) {
+          c.strokeStyle = lum(o.c) > .6 ? '#222222' : '#FFFFFF';
+          c.lineWidth = Math.max(3, o.size * .16);
+        }
+        L.forEach((ln, i) => {
+          const y = (i - (L.length - 1) / 2) * lh;
+          if (o.ol) c.strokeText(ln, 0, y, W - 40);
+          c.fillText(ln, 0, y, W - 40);
+        });
+        break;
+      }
+      case 'bunting': {
+        const n = Math.max(3, Math.round(o.w / 40)), x0 = o.x - o.w / 2, x1 = o.x + o.w / 2, sag = Math.min(20, o.w * .03);
+        const flagCols = ['#FF5C7A', '#FFB400', '#2EC4B6', '#4D7CFE', '#9B5DE5', '#FF8A3D'];
+        c.strokeStyle = o.c; c.lineWidth = 3;
+        c.beginPath(); c.moveTo(x0, o.y); c.quadraticCurveTo(o.x, o.y + sag * 2, x1, o.y); c.stroke();
+        for (let i = 0; i < n; i++) {
+          const t = (i + .5) / n, u = 1 - t;
+          const px = u * u * x0 + 2 * u * t * o.x + t * t * x1;
+          const py = u * u * o.y + 2 * u * t * (o.y + sag * 2) + t * t * o.y;
+          const ang = Math.atan2(2 * u * (sag * 2) + 2 * t * (-sag * 2), 2 * u * (o.x - x0) + 2 * t * (x1 - o.x));
+          const fw = Math.min(30, o.w / n * .85);
+          c.save(); c.translate(px, py); c.rotate(ang);
+          c.fillStyle = flagCols[i % flagCols.length];
+          c.beginPath(); c.moveTo(-fw / 2, 0); c.lineTo(fw / 2, 0); c.lineTo(0, fw * 1.15); c.closePath(); c.fill();
+          c.restore();
+        }
+        break;
+      }
+      case 'shape': {
+        const sz = o.s;
+        c.translate(o.x, o.y); c.rotate(rad(o.r)); c.fillStyle = o.c; c.strokeStyle = o.c;
+        switch (o.k) {
+          case 'heart':
+            c.beginPath(); c.moveTo(0, sz * .9);
+            c.bezierCurveTo(-sz * 1.3, -sz * .1, -sz * .7, -sz * 1.0, 0, -sz * .35);
+            c.bezierCurveTo(sz * .7, -sz * 1.0, sz * 1.3, -sz * .1, 0, sz * .9); c.fill(); break;
+          case 'star':
+            c.beginPath();
+            for (let i = 0; i < 10; i++) { const r = i % 2 ? sz * .45 : sz, a = -Math.PI / 2 + i * Math.PI / 5; c.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+            c.closePath(); c.fill(); break;
+          case 'flower':
+            for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; c.beginPath(); c.arc(Math.cos(a) * sz * .55, Math.sin(a) * sz * .55, sz * .4, 0, 6.2832); c.fill(); }
+            c.fillStyle = '#FFC400'; c.beginPath(); c.arc(0, 0, sz * .3, 0, 6.2832); c.fill(); break;
+          case 'sun':
+            c.beginPath(); c.arc(0, 0, sz * .5, 0, 6.2832); c.fill();
+            c.lineWidth = Math.max(2, sz * .12);
+            for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; c.beginPath(); c.moveTo(Math.cos(a) * sz * .68, Math.sin(a) * sz * .68); c.lineTo(Math.cos(a) * sz, Math.sin(a) * sz); c.stroke(); }
+            break;
+          case 'cloud':
+            [[-.5, .15, .38], [-.05, -.15, .5], [.5, .1, .4]].forEach(q => { c.beginPath(); c.arc(q[0] * sz, q[1] * sz, q[2] * sz, 0, 6.2832); c.fill(); });
+            c.fillRect(-.5 * sz, .1 * sz, sz, .38 * sz); break;
+          case 'bubble': {
+            const w = sz * 1.1, t = -sz * .7, b = sz * .55, r = sz * .35;
+            c.beginPath(); c.moveTo(-w + r, t);
+            c.arcTo(w, t, w, b, r); c.arcTo(w, b, -w, b, r);
+            c.lineTo(-w * .2, b); c.lineTo(-w * .65, sz * .95); c.lineTo(-w * .6, b);
+            c.arcTo(-w, b, -w, t, r); c.arcTo(-w, t, w, t, r); c.closePath(); c.fill(); break;
+          }
+        }
+        break;
+      }
+      case 'img': {
+        const im = getImg(o.id), hw = o.w / 2, hh = o.h / 2;
+        c.translate(o.x, o.y); c.rotate(rad(o.r));
+        if (o.border) {
+          const bw = Math.max(8, o.w * .03);
+          c.shadowColor = 'rgba(0,0,0,.28)'; c.shadowBlur = 14; c.shadowOffsetY = 4;
+          c.fillStyle = '#FFFFFF'; shapePath(c, hw + bw, hh + bw, o.round); c.fill();
+          c.shadowColor = 'rgba(0,0,0,0)'; c.shadowBlur = 0; c.shadowOffsetY = 0;
+        }
+        shapePath(c, hw, hh, o.round); c.clip();
+        if (im && im.complete && im.naturalWidth) { if (o.fx && FX[o.fx] && 'filter' in c) c.filter = FX[o.fx]; c.drawImage(im, -hw, -hh, o.w, o.h); }
+        else { c.fillStyle = '#C9CCD6'; c.fillRect(-hw, -hh, o.w, o.h); }
+        break;
+      }
+    }
+    c.restore();
+  }
+
+  function rng(seed) {
+    return () => {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function drawPaper() {
+    const inside = st.side === 'inside';
+    const paper = inside ? mix(paperCol(), '#FFFFFF', .55) : paperCol(), ink = inkCol(), pat = inside ? 'plain' : st.paper;
+    if (pat === 'gradient') {
+      const g = ctx.createLinearGradient(0, 0, W, H);
+      g.addColorStop(0, paper); g.addColorStop(1, mix(paper, ink, .3));
+      ctx.fillStyle = g;
+    } else ctx.fillStyle = paper;
+    ctx.fillRect(0, 0, W, H);
+
+    if (pat === 'confetti') {
+      const r = rng(7), cols = ['#FF5C7A', '#FFB400', '#2EC4B6', '#4D7CFE', '#9B5DE5', '#FF8A3D'];
+      ctx.save(); ctx.globalAlpha = .6;
+      for (let i = 0; i < 80; i++) {
+        const x = r() * W, y = r() * H, s = 6 + r() * 9, a = r() * 6.28;
+        ctx.fillStyle = cols[Math.floor(r() * cols.length)];
+        ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+        if (r() > .5) ctx.fillRect(-s / 2, -s / 4, s, s / 2);
+        else { ctx.beginPath(); ctx.arc(0, 0, s / 3, 0, 6.2832); ctx.fill(); }
+        ctx.restore();
+      }
+      ctx.restore();
+    } else if (pat === 'dots') {
+      ctx.save(); ctx.globalAlpha = .13; ctx.fillStyle = ink;
+      for (let y = 18, row = 0; y < H + 20; y += 36, row++) {
+        for (let x = (row % 2) * 18 + 18; x < W + 20; x += 36) { ctx.beginPath(); ctx.arc(x, y, 5, 0, 6.2832); ctx.fill(); }
+      }
+      ctx.restore();
+    } else if (pat === 'stripes') {
+      ctx.save(); ctx.globalAlpha = .1; ctx.fillStyle = ink;
+      for (let x = -H; x < W; x += 44) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 22, 0); ctx.lineTo(x + 22 + H, H); ctx.lineTo(x + H, H); ctx.closePath(); ctx.fill();
+      }
+      ctx.restore();
+    } else if (pat === 'stars') {
+      ctx.save(); ctx.globalAlpha = .2; ctx.fillStyle = ink;
+      for (let y = 30, row = 0; y < H + 30; y += 60, row++) {
+        for (let x = (row % 2) * 30 + 30; x < W + 30; x += 60) star4(ctx, x, y, 9);
+      }
+      ctx.restore();
+    }
+  }
+
+  function drawFrame() {
+    if (st.frame === 'none') return;
+    const ink = inkCol();
+    ctx.save(); ctx.strokeStyle = ink; ctx.fillStyle = ink;
+    if (st.frame === 'line') {
+      ctx.globalAlpha = .85; ctx.lineWidth = 4; ctx.strokeRect(20, 20, W - 40, H - 40);
+    } else if (st.frame === 'double') {
+      ctx.globalAlpha = .85; ctx.lineWidth = 4; ctx.strokeRect(18, 18, W - 36, H - 36);
+      ctx.lineWidth = 1.5; ctx.strokeRect(30, 30, W - 60, H - 60);
+    } else if (st.frame === 'dotted') {
+      ctx.globalAlpha = .85;
+      for (let x = 26; x <= W - 26; x += 22) { ctx.beginPath(); ctx.arc(x, 26, 3.5, 0, 6.2832); ctx.fill(); ctx.beginPath(); ctx.arc(x, H - 26, 3.5, 0, 6.2832); ctx.fill(); }
+      for (let y = 48; y <= H - 48; y += 22) { ctx.beginPath(); ctx.arc(26, y, 3.5, 0, 6.2832); ctx.fill(); ctx.beginPath(); ctx.arc(W - 26, y, 3.5, 0, 6.2832); ctx.fill(); }
+    } else if (st.frame === 'scallop') {
+      ctx.globalAlpha = .9;
+      for (let x = 0; x <= W + 16; x += 32) { ctx.beginPath(); ctx.arc(x, 0, 16, 0, 6.2832); ctx.fill(); ctx.beginPath(); ctx.arc(x, H, 16, 0, 6.2832); ctx.fill(); }
+      for (let y = 0; y <= H + 16; y += 32) { ctx.beginPath(); ctx.arc(0, y, 16, 0, 6.2832); ctx.fill(); ctx.beginPath(); ctx.arc(W, y, 16, 0, 6.2832); ctx.fill(); }
+    }
+    ctx.restore();
+  }
+
+  let grainCv = null;
+  function grain() {
+    if (grainCv) return grainCv;
+    grainCv = document.createElement('canvas'); grainCv.width = W * S; grainCv.height = H * S;
+    const g = grainCv.getContext('2d'), r = rng(99);
+    for (let i = 0; i < 5200; i++) {
+      g.fillStyle = r() > .5 ? 'rgba(255,255,255,.08)' : 'rgba(60,40,20,.05)';
+      g.fillRect(r() * W * S, r() * H * S, 1 + r() * 2, 1 + r() * 2);
+    }
+    return grainCv;
+  }
+
+  function bbox0(o) {
+    switch (o.t) {
+      case 'stroke': case 'erase': {
+        let a = 1e9, b = 1e9, c = -1e9, d = -1e9;
+        o.pts.forEach(p => { a = Math.min(a, p[0]); b = Math.min(b, p[1]); c = Math.max(c, p[0]); d = Math.max(d, p[1]); });
+        const h = (o.b === 'marker' ? o.w * 2 : o.w) / 2 + (o.b === 'sparkle' ? o.w * 2 : 0);
+        return [a - h, b - h, c + h, d + h];
+      }
+      case 'line': case 'rect': case 'oval': {
+        const h = o.w / 2;
+        return [Math.min(o.x1, o.x2) - h, Math.min(o.y1, o.y2) - h, Math.max(o.x1, o.x2) + h, Math.max(o.y1, o.y2) + h];
+      }
+      case 'stamp': { const h = o.s * .6; return [o.x - h, o.y - h, o.x + h, o.y + h]; }
+      case 'shape': { const h = o.s * 1.2; return [o.x - h, o.y - h, o.x + h, o.y + h]; }
+      case 'bunting': return [o.x - o.w / 2 - 4, o.y - 4, o.x + o.w / 2 + 4, o.y + Math.min(20, o.w * .03) + 40];
+      case 'img': {
+        const bw = o.border ? Math.max(8, o.w * .03) : 0;
+        return [o.x - o.w / 2 - bw, o.y - o.h / 2 - bw, o.x + o.w / 2 + bw, o.y + o.h / 2 + bw];
+      }
+      case 'text': {
+        ctx.save(); ctx.font = fontStr(o.f, o.size);
+        const L = o.s.split('\n');
+        const w = Math.min(W - 40, Math.max(...L.map(l => ctx.measureText(l).width)));
+        ctx.restore();
+        return [o.x - w / 2, o.y - o.size * .6, o.x + w / 2, o.y + (L.length - 1) * o.size * 1.2 + o.size * .6];
+      }
+    }
+    return [0, 0, 0, 0];
+  }
+  function bbox(o) {
+    const b = bbox0(o);
+    if (!o.r) return b;
+    const cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2, a = rad(o.r), cs = Math.cos(a), sn = Math.sin(a);
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    [[b[0], b[1]], [b[2], b[1]], [b[2], b[3]], [b[0], b[3]]].forEach(p => {
+      const dx = p[0] - cx, dy = p[1] - cy, x = cx + dx * cs - dy * sn, y = cy + dx * sn + dy * cs;
+      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+    });
+    return [x0, y0, x1, y1];
+  }
+  function hit(x, y) {
+    for (let i = st.objs.length - 1; i >= 0; i--) {
+      const o = st.objs[i]; if (o.t === 'erase') continue;
+      const b = bbox(o);
+      if (x >= b[0] - 6 && x <= b[2] + 6 && y >= b[1] - 6 && y <= b[3] + 6) return i;
+    }
+    return -1;
+  }
+  function translate(o, dx, dy) {
+    if (o.pts) o.pts = o.pts.map(p => [p[0] + dx, p[1] + dy]);
+    else if ('x1' in o) { o.x1 += dx; o.x2 += dx; o.y1 += dy; o.y2 += dy; }
+    else { o.x += dx; o.y += dy; }
+  }
+  function mirrorOf(d) { return Object.assign({}, d, { pts: d.pts.map(p => [W - p[0], p[1]]) }); }
+  function scaleObj(o, f) {
+    if (o.t === 'stamp' || o.t === 'shape') o.s = clamp(o.s * f, 16, 600);
+    else if (o.t === 'text') o.size = clamp(o.size * f, 10, 300);
+    else if (o.t === 'img') { o.w = clamp(o.w * f, 40, 1600); o.h = clamp(o.h * f, 40, 1600); }
+    else if (o.t === 'bunting') o.w = clamp(o.w * f, 120, 1200);
+    else {
+      const b = bbox(o), cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2;
+      const sc = (x, y) => [cx + (x - cx) * f, cy + (y - cy) * f];
+      if (o.pts) o.pts = o.pts.map(p => sc(p[0], p[1]));
+      else { const a = sc(o.x1, o.y1), z = sc(o.x2, o.y2); o.x1 = a[0]; o.y1 = a[1]; o.x2 = z[0]; o.y2 = z[1]; }
+      o.w = clamp(o.w * f, 1, 120);
+    }
+  }
+
+  function render(showSel = true) {
+    lc.setTransform(1, 0, 0, 1, 0, 0); lc.clearRect(0, 0, W * S, H * S); lc.setTransform(S, 0, 0, S, 0, 0);
+    st.objs.forEach(o => drawObj(lc, o));
+    if (draft) { drawObj(lc, draft); if (st.mirror && st.tool === 'brush' && draft.pts) drawObj(lc, mirrorOf(draft)); }
+    ctx.setTransform(S, 0, 0, S, 0, 0);
+    drawPaper();
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(grain(), 0, 0); ctx.drawImage(layer, 0, 0); ctx.setTransform(S, 0, 0, S, 0, 0);
+    drawFrame();
+    if (showSel && st.mirror && st.tool === 'brush') { ctx.save(); ctx.strokeStyle = inkCol(); ctx.globalAlpha = .3; ctx.setLineDash([8, 8]); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke(); ctx.restore(); }
+    if (showSel && st.sel >= 0 && st.objs[st.sel]) {
+      const b = bbox(st.objs[st.sel]);
+      ctx.save(); ctx.strokeStyle = '#2F5BFF'; ctx.lineWidth = 2; ctx.setLineDash([7, 5]);
+      ctx.strokeRect(b[0] - 6, b[1] - 6, b[2] - b[0] + 12, b[3] - b[1] + 12); ctx.restore();
+      drawHandles(st.objs[st.sel]);
+    }
+  }
+  function queueRender() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
+
+  /* ---------- history + remembered draft ---------- */
+  function pushHist() {
+    hist = hist.slice(0, hi + 1); hist.push(JSON.stringify(st.objs));
+    if (hist.length > 120) hist.shift();
+    hi = hist.length - 1; updateButtons(); persist();
+  }
+  function resetHist() { hist = [JSON.stringify(st.objs)]; hi = 0; sideHist = {}; updateButtons(); persist(); }
+  function markSide() {
+    $('#tabFront').setAttribute('aria-selected', String(st.side === 'front'));
+    $('#tabInside').setAttribute('aria-selected', String(st.side === 'inside'));
+  }
+  function switchSide(side) {
+    if (side === st.side) return;
+    sideHist[st.side] = { hist, hi };
+    const cur = st.objs;
+    st.objs = st.other; st.other = cur; st.side = side; st.sel = -1; draft = null; drag = null;
+    const h = sideHist[side];
+    if (h && h.hist.length) { hist = h.hist; hi = h.hi; } else { hist = [JSON.stringify(st.objs)]; hi = 0; }
+    markSide(); updateButtons(); render(); persist();
+    say(side === 'front' ? 'Front of the card.' : 'Inside of the card. Write your message here.');
+  }
+  function undo() { if (hi > 0) { hi--; st.objs = JSON.parse(hist[hi]); st.sel = -1; render(); updateButtons(); persist(); } }
+  function redo() { if (hi < hist.length - 1) { hi++; st.objs = JSON.parse(hist[hi]); st.sel = -1; render(); updateButtons(); persist(); } }
+  function addObj(o) { st.objs.push(o); pushHist(); render(); }
+
+  function snapshot(withPhotos) {
+    const strip = arr => withPhotos ? arr : arr.filter(o => o.t !== 'img');
+    const front = st.side === 'front' ? st.objs : st.other, inside = st.side === 'inside' ? st.objs : st.other;
+    const images = {};
+    if (withPhotos) front.concat(inside).forEach(o => { if (o.t === 'img' && IMGS[o.id]) images[o.id] = IMGS[o.id]; });
+    return {
+      app: 'wish-card-studio', v: 3, occ: st.occ, paper: st.paper, paperColor: st.paperColor, frame: st.frame,
+      to: st.to, from: st.from, msg: st.msg, color: st.color, objs: strip(front), inside: strip(inside), images
+    };
+  }
+  function persist() {
+    if (viewer) return;
+    clearTimeout(pt);
+    pt = setTimeout(() => {
+      if (viewer) return;
+      try { localStorage.setItem(KEY, JSON.stringify(snapshot(true))); }
+      catch (e) {
+        try {
+          localStorage.setItem(KEY, JSON.stringify(snapshot(false)));
+          if (!warned && st.objs.some(o => o.t === 'img')) { warned = true; say('Photos are too big to keep between visits. Save a project file to keep them.'); }
+        } catch (e2) {}
+      }
+    }, 300);
+  }
+
+  const num = (...v) => v.every(Number.isFinite);
+  function validObj(o) {
+    if (!o || typeof o !== 'object') return false;
+    switch (o.t) {
+      case 'stroke': case 'erase': return Array.isArray(o.pts) && o.pts.length > 0 && o.pts.every(p => Array.isArray(p) && num(p[0], p[1])) && num(o.w);
+      case 'line': case 'rect': case 'oval': return num(o.x1, o.y1, o.x2, o.y2, o.w);
+      case 'stamp': return typeof o.e === 'string' && num(o.x, o.y, o.s);
+      case 'text': return typeof o.s === 'string' && typeof o.f === 'string' && num(o.x, o.y, o.size);
+      case 'img': return typeof o.id === 'string' && num(o.x, o.y, o.w, o.h);
+      case 'shape': return typeof o.k === 'string' && num(o.x, o.y, o.s);
+      case 'bunting': return num(o.x, o.y, o.w);
+    }
+    return false;
+  }
+  function loadState(d) {
+    if (!d || typeof d !== 'object' || !OCC[d.occ] || !Array.isArray(d.objs)) return false;
+    const imgs = (d.images && typeof d.images === 'object') ? d.images : {};
+    Object.keys(imgs).forEach(k => { if (typeof imgs[k] === 'string' && imgs[k].startsWith('data:image/')) IMGS[k] = imgs[k]; });
+    const clean = arr => arr.filter(validObj).map(o => {
+      if (o.t !== 'img' && typeof o.c !== 'string') o.c = '#000000';
+      return o;
+    });
+    st.objs = clean(d.objs);
+    const hex = /^#[0-9a-f]{6}$/i;
+    st.occ = d.occ;
+    st.paper = PAPERS.includes(d.paper) ? d.paper : 'confetti';
+    st.paperColor = hex.test(d.paperColor || '') ? d.paperColor : null;
+    st.frame = FRAMES.includes(d.frame) ? d.frame : 'none';
+    st.to = String(d.to || '').slice(0, 40); st.from = String(d.from || '').slice(0, 40);
+    st.msg = String(d.msg || st.msg).slice(0, 200);
+    st.color = hex.test(d.color || '') ? d.color : OCC[d.occ].ink;
+    st.stamp = OCC[d.occ].stamp; st.sel = -1; st.side = 'front';
+    st.other = Array.isArray(d.inside) ? clean(d.inside) : defaultInside();
+    return true;
+  }
+
+  function say(t) { $('#status').textContent = t; }
+  function selObj() { return st.sel >= 0 ? st.objs[st.sel] || null : null; }
+
+  function updateButtons() {
+    $('#undo').disabled = hi <= 0;
+    $('#redo').disabled = hi >= hist.length - 1;
+    $('#clear').disabled = st.objs.length === 0;
+    const o = selObj();
+    $('#selGroup').hidden = !o;
+    if (!o) return;
+    const rot = o.t === 'stamp' || o.t === 'text' || o.t === 'img' || o.t === 'shape';
+    $('#rotRow').hidden = !rot;
+    $('#rot').value = o.r || 0; $('#rotOut').textContent = Math.round(o.r || 0) + '°';
+    $('#imgOpts').hidden = o.t !== 'img';
+    $('#round').checked = !!o.round; $('#border').checked = !!o.border; $('#imgFx').value = o.fx || 'none';
+    $('#textOpts').hidden = o.t !== 'text';
+    $('#selOutline').checked = !!o.ol;
+  }
+
+  /* ---------- greeting ---------- */
+  function fitSize(text, font, start, maxW) {
+    ctx.save(); ctx.font = fontStr(font, start);
+    const w = ctx.measureText(text).width; ctx.restore();
+    return w > maxW ? Math.max(24, Math.floor(start * maxW / w)) : start;
+  }
+  function wrapText(s, font, size, maxW) {
+    ctx.save(); ctx.font = fontStr(font, size);
+    const out = [];
+    s.split('\n').forEach(par => {
+      let line = '';
+      par.split(/\s+/).filter(Boolean).forEach(w => {
+        const t = line ? line + ' ' + w : w;
+        if (ctx.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t;
+      });
+      out.push(line);
+    });
+    ctx.restore();
+    return out.join('\n');
+  }
+  function greetingText() {
+    const o = OCC[st.occ], to = st.to.trim(), from = st.from.trim();
+    return { head: o.head + (to ? ', ' + to : '') + '!', sub: o.sub, from: from ? 'With love, ' + from : '' };
+  }
+  function greetingObjs() {
+    const g = greetingText(), ink = inkCol(), res = [];
+    res.push({ t: 'text', g: 'head', s: g.head, x: W / 2, y: 86, size: fitSize(g.head, 'Pacifico', 64, W - 80), c: ink, f: 'Pacifico' });
+    res.push({ t: 'text', g: 'sub', s: g.sub, x: W / 2, y: 156, size: 36, c: ink, f: 'Caveat' });
+    if (g.from) res.push({ t: 'text', g: 'from', s: g.from, x: W / 2, y: H - 52, size: 42, c: ink, f: 'Caveat' });
+    return res;
+  }
+  function syncGreeting() {
+    const g = greetingText(), ink = inkCol();
+    let changed = false;
+    st.objs.forEach(o => {
+      if (o.g === 'head') { o.s = g.head; o.c = ink; o.size = fitSize(g.head, 'Pacifico', 64, W - 80); changed = true; }
+      if (o.g === 'sub') { o.s = g.sub; o.c = ink; changed = true; }
+      if (o.g === 'from') { o.s = g.from || o.s; o.c = ink; changed = true; }
+    });
+    if (g.from && st.objs.some(o => o.g) && !st.objs.some(o => o.g === 'from')) {
+      st.objs.push({ t: 'text', g: 'from', s: g.from, x: W / 2, y: H - 52, size: 42, c: ink, f: 'Caveat' });
+      changed = true;
+    }
+    if (!g.from) { const n = st.objs.length; st.objs = st.objs.filter(o => o.g !== 'from'); if (st.objs.length !== n) changed = true; }
+    const toN = st.to.trim(), fromN = st.from.trim();
+    [st.objs, st.other].forEach(arr => arr.forEach(o => {
+      if (o.g2 === 'dear') o.s = toN ? 'Dear ' + toN + ',' : 'Dear friend,';
+      if (o.g2 === 'sign') o.s = fromN ? 'With love,\n' + fromN : 'With love,';
+      if (o.g2 === 'wish' && o.auto) o.s = wrapText(WISHES[st.occ][0], 'Caveat', 38, 700);
+      if (o.g2) o.c = ink;
+    }));
+    if (st.objs.some(o => o.g2)) changed = true;
+    return changed;
+  }
+  function sampleObjs() {
+    const d = DECOR[st.occ] || DECOR.Custom;
+    return greetingObjs().concat([
+      { t: 'stamp', e: d[0], x: 450, y: 345, s: 170 },
+      { t: 'stamp', e: d[1], x: 130, y: 300, s: 110, r: -12 },
+      { t: 'stamp', e: d[2], x: 770, y: 300, s: 110, r: 12 },
+      { t: 'stamp', e: d[3], x: 200, y: 480, s: 86 },
+      { t: 'stamp', e: d[4], x: 700, y: 480, s: 86 }
+    ]);
+  }
+
+  function defaultInside() {
+    const ink = inkCol(), to = st.to.trim(), from = st.from.trim(), d = DECOR[st.occ] || DECOR.Custom;
+    return [
+      { t: 'text', g2: 'dear', s: to ? 'Dear ' + to + ',' : 'Dear friend,', x: W / 2, y: 120, size: 48, c: ink, f: 'Pacifico' },
+      { t: 'text', g2: 'wish', auto: true, s: wrapText(WISHES[st.occ][0], 'Caveat', 38, 700), x: W / 2, y: 235, size: 38, c: ink, f: 'Caveat' },
+      { t: 'text', g2: 'sign', s: from ? 'With love,\n' + from : 'With love,', x: W / 2, y: 455, size: 40, c: ink, f: 'Caveat' },
+      { t: 'stamp', e: d[0], x: W - 90, y: H - 80, s: 70, r: 10 },
+      { t: 'stamp', e: d[2], x: 90, y: H - 80, s: 70, r: -10 }
+    ];
+  }
+
+  /* ---------- building the panel ---------- */
+  function buildUI() {
+    const occ = $('#occasions');
+    Object.keys(OCC).forEach(name => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.setAttribute('role', 'radio'); b.dataset.occ = name;
+      b.innerHTML = '<i style="background:' + OCC[name].paper + '"></i><span></span>';
+      b.lastChild.textContent = name;
+      b.addEventListener('click', () => setOccasion(name));
+      occ.appendChild(b);
+    });
+    const tools = $('#tools');
+    TOOLS.forEach(([id, label]) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'tool'; b.dataset.tool = id; b.textContent = label;
+      b.addEventListener('click', () => setTool(id));
+      tools.appendChild(b);
+    });
+    const sw = $('#swatches');
+    INKS.forEach(c => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'sw'; b.style.background = c; b.dataset.c = c;
+      b.setAttribute('aria-label', 'Ink ' + c);
+      b.addEventListener('click', () => pickInk(c, true));
+      sw.appendChild(b);
+    });
+    const custom = document.createElement('input');
+    custom.type = 'color'; custom.id = 'custom'; custom.setAttribute('aria-label', 'Custom ink colour');
+    custom.addEventListener('input', () => pickInk(custom.value, false));
+    custom.addEventListener('change', () => { noteRecent(custom.value); if (selObj() && 'c' in selObj()) pushHist(); });
+    sw.appendChild(custom);
+    const stamps = $('#stamps');
+    STAMPS.forEach(e => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'stamp'; b.dataset.e = e; b.textContent = e; b.setAttribute('aria-label', 'Stamp ' + e);
+      b.addEventListener('click', () => { st.stamp = e; setTool('stamp'); markStamp(); });
+      stamps.appendChild(b);
+    });
+    const fs = $('#font');
+    Object.keys(FONTS).forEach(f => {
+      const o = document.createElement('option'); o.value = f; o.textContent = FONTS[f].label; fs.appendChild(o);
+    });
+  }
+  function markOccasion() {
+    document.querySelectorAll('.chip').forEach(b => b.setAttribute('aria-checked', String(b.dataset.occ === st.occ)));
+  }
+  function markStamp() {
+    document.querySelectorAll('.stamp').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.e === st.stamp)));
+  }
+  function markColor() {
+    document.querySelectorAll('.sw').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.c.toLowerCase() === st.color.toLowerCase())));
+    const c = $('#custom'); if (/^#[0-9a-f]{6}$/i.test(st.color)) c.value = st.color;
+  }
+  function markPaperColor() {
+    const c = paperCol(); if (/^#[0-9a-f]{6}$/i.test(c)) $('#paperColor').value = c.toLowerCase();
+  }
+  function syncControls() {
+    $('#to').value = st.to; $('#from').value = st.from; $('#msg').value = st.msg;
+    $('#paper').value = st.paper; $('#frame').value = st.frame; $('#font').value = st.font;
+    $('#size').value = st.size; $('#sizeOut').textContent = st.size; $('#brush').value = st.brush;
+    $('#outline').checked = st.outline; $('#fill').checked = st.fill;
+    $('#mirror').checked = st.mirror; $('#shapeKind').value = st.shapeKind; markSide();
+    markOccasion(); markColor(); markStamp(); markPaperColor(); updateButtons();
+  }
+  function pickInk(c, commit) {
+    st.color = c; markColor();
+    if (commit && !INKS.some(k => k.toLowerCase() === c.toLowerCase())) noteRecent(c);
+    const o = selObj();
+    if (o && 'c' in o) { o.c = c; if (commit) pushHist(); render(); }
+    else if (st.tool === 'eraser') setTool('brush');
+    persist();
+  }
+  function setTool(t) {
+    st.tool = t; if (t !== 'move') st.sel = -1;
+    document.querySelectorAll('.tool').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === t)));
+    $('#textGroup').hidden = t !== 'text';
+    $('#brushRow').hidden = t !== 'brush';
+    $('#shapeRow').hidden = t !== 'shape';
+    $('#fillRow').hidden = !(t === 'rect' || t === 'oval');
+    cv.className = t === 'text' ? 'c-text' : t === 'stamp' ? 'c-stamp' : t === 'move' ? 'c-move' : '';
+    cv.style.cursor = '';
+    say(HINTS[t]); updateButtons(); render();
+  }
+  function setOccasion(name) {
+    st.occ = name; st.color = OCC[name].ink; st.stamp = OCC[name].stamp; st.paperColor = null; st.wishIdx = 0;
+    markOccasion(); markColor(); markStamp(); markPaperColor();
+    const changed = syncGreeting();
+    if (changed) pushHist(); else persist();
+    render();
+    say(name + ' card. ' + (changed ? 'Your greeting was updated to match.' : 'Use Add greeting for a headline.'));
+  }
+
+  function removeSelected() {
+    if (st.sel < 0) return;
+    st.objs.splice(st.sel, 1); st.sel = -1; pushHist(); render();
+  }
+
+  /* ---------- pointer input ---------- */
+  function pos(e) {
+    const r = cv.getBoundingClientRect();
+    return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height];
+  }
+  cv.addEventListener('pointerdown', e => {
+    if (e.button > 0 || viewer) return;
+    const [x, y] = pos(e), t = st.tool;
+    try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+    if (t === 'brush' || t === 'eraser') {
+      draft = t === 'brush'
+        ? { t: 'stroke', b: st.brush, seed: 1 + Math.floor(Math.random() * 9999), pts: [[x, y]], c: st.color, w: st.size }
+        : { t: 'erase', pts: [[x, y]], c: '#000000', w: st.size * 3 };
+    } else if (t === 'line' || t === 'rect' || t === 'oval') {
+      draft = { t, x1: x, y1: y, x2: x, y2: y, c: st.color, w: st.size, f: st.fill && t !== 'line' };
+    } else if (t === 'shape') {
+      addObj({ t: 'shape', k: st.shapeKind, x, y, s: Math.max(20, st.size * 5), c: st.color, r: 0 }); return;
+    } else if (t === 'stamp') {
+      addObj({ t: 'stamp', e: st.stamp, x, y, s: Math.max(24, st.size * 6) }); return;
+    } else if (t === 'text') {
+      const raw = st.msg.trim();
+      if (!raw) { say('Type a message first, then click the card.'); return; }
+      const size = Math.max(14, st.size * 4);
+      addObj({ t: 'text', s: wrapText(raw, st.font, size, W - 140), x, y, size, c: st.color, f: st.font, ol: st.outline }); return;
+    } else if (t === 'move') {
+      const cur = selObj(), hk = cur ? handleAt(cur, x, y) : null;
+      if (hk) {
+        const g = handlesFor(cur);
+        drag = { mode: hk, orig: JSON.parse(JSON.stringify(cur)), cx: g.cx, cy: g.cy,
+                 d0: Math.max(8, Math.hypot(x - g.cx, y - g.cy)), a0: Math.atan2(y - g.cy, x - g.cx), r0: cur.r || 0, moved: false };
+      } else {
+        st.sel = hit(x, y);
+        drag = st.sel >= 0 ? { lx: x, ly: y, moved: false } : null;
+      }
+      updateButtons();
+    }
+    render();
+  });
+  cv.addEventListener('pointermove', e => {
+    const [x, y] = pos(e);
+    if (viewer) return;
+    if (!draft && !drag && st.tool === 'move') {
+      const so = selObj(), hv = so ? handleAt(so, x, y) : null;
+      cv.style.cursor = hv === 'scale' ? 'nwse-resize' : hv === 'rot' ? 'alias' : '';
+    }
+    if (draft) {
+      if (draft.pts) draft.pts.push([x, y]); else { draft.x2 = x; draft.y2 = y; }
+      queueRender();
+    } else if (drag && selObj()) {
+      if (drag.mode === 'scale') {
+        const c = JSON.parse(JSON.stringify(drag.orig));
+        scaleObj(c, clamp(Math.hypot(x - drag.cx, y - drag.cy) / drag.d0, .15, 8));
+        st.objs[st.sel] = c; drag.moved = true;
+      } else if (drag.mode === 'rot') {
+        let r = drag.r0 + (Math.atan2(y - drag.cy, x - drag.cx) - drag.a0) * 180 / Math.PI;
+        r = ((r + 540) % 360) - 180;
+        if (e.shiftKey) r = Math.round(r / 15) * 15;
+        selObj().r = Math.round(r * 10) / 10; drag.moved = true;
+      } else {
+        translate(selObj(), x - drag.lx, y - drag.ly);
+        drag.lx = x; drag.ly = y; drag.moved = true;
+      }
+      queueRender();
+    }
+  });
+  function endPointer() {
+    if (draft) {
+      const d = draft; draft = null;
+      const empty = !d.pts && d.x1 === d.x2 && d.y1 === d.y2;
+      if (!empty) { st.objs.push(d); if (st.mirror && st.tool === 'brush' && d.pts) st.objs.push(mirrorOf(d)); pushHist(); }
+      render();
+    }
+    if (drag) { if (drag.moved) pushHist(); drag = null; updateButtons(); render(); }
+  }
+  cv.addEventListener('pointerup', endPointer);
+  cv.addEventListener('pointercancel', endPointer);
+
+  /* ---------- photos ---------- */
+  function addPhoto(file) {
+    if (!file || !file.type || file.type.indexOf('image/') !== 0) { say('Choose an image file.'); return; }
+    const fr = new FileReader();
+    fr.onload = () => {
+      const im = new Image();
+      im.onload = () => {
+        const k = Math.min(1, 1000 / Math.max(im.naturalWidth, im.naturalHeight));
+        const cw = Math.max(1, Math.round(im.naturalWidth * k)), ch = Math.max(1, Math.round(im.naturalHeight * k));
+        const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+        const x = c.getContext('2d'); x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, cw, ch); x.drawImage(im, 0, 0, cw, ch);
+        const id = 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        IMGS[id] = c.toDataURL('image/jpeg', .85);
+        const fit = Math.min(380 / cw, 300 / ch);
+        setTool('move');
+        st.objs.push({ t: 'img', id, x: W / 2, y: H / 2 + 20, w: Math.round(cw * fit), h: Math.round(ch * fit), r: 0, round: false, border: true });
+        st.sel = st.objs.length - 1;
+        pushHist(); render();
+        say('Photo added. Drag it, resize it or rotate it from the Selected item box.');
+      };
+      im.onerror = () => say('That image could not be read.');
+      im.src = fr.result;
+    };
+    fr.onerror = () => say('That file could not be read.');
+    fr.readAsDataURL(file);
+  }
+
+  /* ---------- saving ---------- */
+  const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const baseName = () => slug(st.occ) + '-card' + (st.to.trim() ? '-' + slug(st.to.trim()) : '');
+  const dlReady = (async () => {
+    try { dl = (window.claude && window.claude.use) ? await window.claude.use('downloads') : null; } catch (e) { dl = null; }
+  })();
+
+  async function deliver(data, name) {
+    await dlReady;
+    if (dl) {
+      try { await dl.save({ filename: name, data }); say('Saved ' + name + '.'); chime(); }
+      catch (err) {
+        const code = err && err.code;
+        say(code === 'declined' ? 'Save cancelled. Your card is still here.'
+          : code === 'rate_limited' ? 'A save prompt is already open. Answer it, then try again.'
+          : 'Could not save here (' + (code || 'error') + ').');
+      }
+      return;
+    }
+    if (window.claude) { say('Saving is not available in this view. Open the page in Claude to save.'); return; }
+    const blob = data instanceof Blob ? data : new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    say('Saved ' + name + '.'); chime();
+  }
+  async function saveImage(type, ext, q) {
+    render(false);
+    const blob = await new Promise(r => cv.toBlob(r, type, q));
+    render(true);
+    if (!blob) { say('Could not make the image. Try again.'); return; }
+    deliver(blob, baseName() + '-' + st.side + '.' + ext);
+  }
+  function tone(notes, gap, vol) {
+    if (!st.sound) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === 'suspended') ac.resume();
+      const t0 = ac.currentTime + .05;
+      notes.forEach((f, i) => {
+        const o = ac.createOscillator(), g = ac.createGain(), t = t0 + i * gap;
+        o.type = 'triangle'; o.frequency.value = f;
+        g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(vol, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .45);
+        o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + .5);
+      });
+    } catch (e) {}
+  }
+  function jingle() { tone([523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5, 1318.5], .13, .09); }
+  function chime() { tone([784, 1175], .09, .07); }
+
+  async function saveBoth() {
+    const keep = { side: st.side, objs: st.objs, other: st.other, sel: st.sel }, shots = [];
+    ['front', 'inside'].forEach(sd => {
+      st.objs = sd === keep.side ? keep.objs : keep.other; st.side = sd; st.sel = -1;
+      render(false);
+      const t = document.createElement('canvas'); t.width = cv.width; t.height = cv.height;
+      t.getContext('2d').drawImage(cv, 0, 0); shots.push(t);
+    });
+    st.side = keep.side; st.objs = keep.objs; st.other = keep.other; st.sel = keep.sel; render(true);
+    const out = document.createElement('canvas'); out.width = cv.width * 2; out.height = cv.height;
+    const o = out.getContext('2d');
+    o.drawImage(shots[0], 0, 0); o.drawImage(shots[1], cv.width, 0);
+    o.fillStyle = 'rgba(0,0,0,.25)'; o.fillRect(cv.width - 1, 0, 2, cv.height);
+    const blob = await new Promise(r => out.toBlob(r, 'image/png'));
+    if (!blob) { say('Could not make the image. Try again.'); return; }
+    deliver(blob, baseName() + '-both-sides.png');
+  }
+  function saveProject() { deliver(JSON.stringify(snapshot(true)), baseName() + '-project.json'); }
+
+  /* ---------- celebrate ---------- */
+  function celebrate() {
+    jingle();
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      say('Celebration skipped because your device asks for less motion.'); return;
+    }
+    const fx = $('#fx'), r = $('#table').getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1);
+    fx.width = Math.round(r.width * d); fx.height = Math.round(r.height * d);
+    const c = fx.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0);
+    const cols = ['#FF5C7A', '#FFB400', '#2EC4B6', '#4D7CFE', '#9B5DE5', '#FF8A3D', '#FFFFFF'], P = [];
+    for (let i = 0; i < 150; i++) {
+      P.push({ x: r.width / 2, y: r.height * .9, vx: (Math.random() - .5) * 15, vy: -(8 + Math.random() * 11),
+               s: 6 + Math.random() * 8, a: Math.random() * 6.28, va: (Math.random() - .5) * .4, c: cols[i % cols.length] });
+    }
+    const t0 = performance.now();
+    (function step(now) {
+      const el = now - t0;
+      c.clearRect(0, 0, r.width, r.height);
+      P.forEach(p => {
+        p.vy += .35; p.x += p.vx; p.y += p.vy; p.a += p.va;
+        c.save(); c.translate(p.x, p.y); c.rotate(p.a); c.fillStyle = p.c; c.globalAlpha = Math.max(0, 1 - el / 2600);
+        c.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); c.restore();
+      });
+      if (el < 2600) requestAnimationFrame(step); else c.clearRect(0, 0, r.width, r.height);
+    })(t0);
+  }
+
+  /* ---------- start up ---------- */
+  buildUI();
+  let restored = false;
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) restored = loadState(JSON.parse(raw));
+  } catch (e) {}
+  if (!restored) { st.objs = sampleObjs(); st.other = defaultInside(); }
+
+  syncControls();
+  resetHist();
+  setTool('brush');
+  say(restored ? 'Welcome back. Your last card is loaded.' : 'This is an example card. Change the name, or press Clear card to start fresh.');
+
+  /* greeting */
+  $('#to').addEventListener('input', e => { st.to = e.target.value; if (syncGreeting()) queueRender(); persist(); });
+  $('#from').addEventListener('input', e => { st.from = e.target.value; if (syncGreeting()) queueRender(); persist(); });
+  $('#to').addEventListener('change', () => { if (st.objs.some(o => o.g)) pushHist(); });
+  $('#from').addEventListener('change', () => { if (st.objs.some(o => o.g)) pushHist(); });
+  $('#greet').addEventListener('click', () => {
+    if (st.side !== 'front') switchSide('front');
+    st.objs = st.objs.filter(o => !o.g).concat(greetingObjs()); st.sel = -1;
+    pushHist(); render(); say('Greeting added. Use Move to place it where you like.');
+  });
+  $('#wish').addEventListener('click', () => {
+    const list = WISHES[st.occ];
+    st.msg = list[st.wishIdx % list.length]; st.wishIdx++;
+    $('#msg').value = st.msg; persist();
+    setTool('text');
+    say('Wish ready. Click the card to place it. Press Suggest a wish again for another.');
+  });
+
+  /* tool options */
+  $('#msg').addEventListener('input', e => { st.msg = e.target.value; persist(); });
+  $('#font').addEventListener('change', e => { st.font = e.target.value; });
+  $('#outline').addEventListener('change', e => { st.outline = e.target.checked; });
+  $('#brush').addEventListener('change', e => { st.brush = e.target.value; });
+  $('#size').addEventListener('input', e => { st.size = +e.target.value; $('#sizeOut').textContent = st.size; });
+  $('#fill').addEventListener('change', e => { st.fill = e.target.checked; });
+
+  /* paper and frame */
+  $('#paper').addEventListener('change', e => { st.paper = e.target.value; render(); persist(); });
+  $('#frame').addEventListener('change', e => { st.frame = e.target.value; render(); persist(); });
+  $('#paperColor').addEventListener('input', e => { st.paperColor = e.target.value; render(); persist(); });
+  $('#paperReset').addEventListener('click', () => { st.paperColor = null; markPaperColor(); render(); persist(); });
+
+  /* selected item */
+  const withSel = fn => () => { const o = selObj(); if (!o) return; fn(o); pushHist(); render(); };
+  $('#smaller').addEventListener('click', withSel(o => scaleObj(o, .9)));
+  $('#larger').addEventListener('click', withSel(o => scaleObj(o, 1.1)));
+  $('#dup').addEventListener('click', () => {
+    const o = selObj(); if (!o) return;
+    const c = JSON.parse(JSON.stringify(o)); delete c.g; translate(c, 24, 24);
+    st.objs.push(c); st.sel = st.objs.length - 1; pushHist(); render();
+  });
+  $('#front').addEventListener('click', () => {
+    const o = selObj(); if (!o) return;
+    st.objs.splice(st.sel, 1); st.objs.push(o); st.sel = st.objs.length - 1; pushHist(); render();
+  });
+  $('#back').addEventListener('click', () => {
+    const o = selObj(); if (!o) return;
+    st.objs.splice(st.sel, 1); st.objs.unshift(o); st.sel = 0; pushHist(); render();
+  });
+  $('#del').addEventListener('click', removeSelected);
+  $('#rot').addEventListener('input', e => {
+    const o = selObj(); if (!o) return;
+    o.r = +e.target.value; $('#rotOut').textContent = o.r + '°'; queueRender();
+  });
+  $('#rot').addEventListener('change', () => { if (selObj()) pushHist(); });
+  $('#round').addEventListener('change', e => { const o = selObj(); if (o) { o.round = e.target.checked; pushHist(); render(); } });
+  $('#border').addEventListener('change', e => { const o = selObj(); if (o) { o.border = e.target.checked; pushHist(); render(); } });
+  $('#selOutline').addEventListener('change', e => { const o = selObj(); if (o) { o.ol = e.target.checked; pushHist(); render(); } });
+  $('#useMsg').addEventListener('click', () => {
+    const o = selObj(), raw = st.msg.trim();
+    if (!o || o.t !== 'text') return;
+    if (!raw) { say('The message box is empty.'); return; }
+    o.s = wrapText(raw, st.font, o.size, W - 140); o.f = st.font; delete o.g; delete o.g2; delete o.auto;
+    pushHist(); render();
+  });
+
+  /* new features */
+  $('#tabFront').addEventListener('click', () => switchSide('front'));
+  $('#tabInside').addEventListener('click', () => switchSide('inside'));
+  $('#dateBtn').addEventListener('click', () => {
+    let d = '';
+    try { d = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { d = new Date().toDateString(); }
+    addObj({ t: 'text', s: d, x: W - 150, y: H - 38, size: 30, c: st.color, f: 'Caveat' });
+    say('Date added. Use Move to place it.');
+  });
+  $('#shapeKind').addEventListener('change', e => { st.shapeKind = e.target.value; });
+  $('#mirror').addEventListener('change', e => { st.mirror = e.target.checked; render(); });
+  $('#sound').addEventListener('change', e => { st.sound = e.target.checked; });
+  $('#imgFx').addEventListener('change', e => {
+    const o = selObj();
+    if (!o || o.t !== 'img') return;
+    if (e.target.value === 'none') delete o.fx; else o.fx = e.target.value;
+    pushHist(); render();
+  });
+  $('#saveBoth').addEventListener('click', saveBoth);
+
+  /* actions */
+  $('#undo').addEventListener('click', undo);
+  $('#redo').addEventListener('click', redo);
+  $('#clear').addEventListener('click', () => { st.objs = []; st.sel = -1; pushHist(); render(); say('Card cleared. Undo brings it back.'); });
+  $('#celebrate').addEventListener('click', celebrate);
+  $('#savePng').addEventListener('click', () => saveImage('image/png', 'png'));
+  $('#saveJpg').addEventListener('click', () => saveImage('image/jpeg', 'jpg', .92));
+  $('#saveProj').addEventListener('click', saveProject);
+  $('#photoFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; addPhoto(f); });
+  $('#openFile').addEventListener('change', async e => {
+    const f = e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    try {
+      const d = JSON.parse(await f.text());
+      if (!loadState(d)) throw new Error('bad');
+      syncControls(); resetHist(); render(); say('Project opened.');
+    } catch (err) { say('That file is not a Wish Card Studio project.'); }
+  });
+
+  document.addEventListener('keydown', e => {
+    if (viewer) return;
+    const tag = (e.target && e.target.tagName) || '';
+    const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && !typing && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+    if (mod && !typing && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); return; }
+    if (typing || mod) return;
+    const o = selObj();
+    if (!o) return;
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeSelected(); }
+    else if (e.key === 'Escape') { st.sel = -1; updateButtons(); render(); }
+    else if (e.key.indexOf('Arrow') === 0) {
+      e.preventDefault();
+      const s = e.shiftKey ? 10 : 2;
+      translate(o, e.key === 'ArrowLeft' ? -s : e.key === 'ArrowRight' ? s : 0, e.key === 'ArrowUp' ? -s : e.key === 'ArrowDown' ? s : 0);
+      queueRender(); clearTimeout(nt); nt = setTimeout(pushHist, 400);
+    }
+  });
+
+  /* ---------- drag handles ---------- */
+  function handlesFor(o) {
+    const b = bbox(o), cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2;
+    const hs = { scale: [Math.min(b[2] + 6, W - 10), Math.min(b[3] + 6, H - 10)] };
+    let up = true;
+    if (canRotate(o)) { up = b[1] - 32 >= 14; hs.rot = [cx, up ? b[1] - 32 : b[3] + 32]; }
+    return { b, cx, cy, hs, up };
+  }
+  function handleAt(o, x, y) {
+    const g = handlesFor(o);
+    for (const k in g.hs) if (Math.hypot(x - g.hs[k][0], y - g.hs[k][1]) <= 18) return k;
+    return null;
+  }
+  function drawHandles(o) {
+    const g = handlesFor(o);
+    ctx.save(); ctx.lineWidth = 2; ctx.strokeStyle = '#2F5BFF'; ctx.fillStyle = '#FFFFFF'; ctx.setLineDash([]);
+    if (g.hs.rot) {
+      ctx.beginPath();
+      ctx.moveTo(g.cx, g.up ? g.b[1] - 6 : g.b[3] + 6); ctx.lineTo(g.hs.rot[0], g.hs.rot[1] + (g.up ? 9 : -9));
+      ctx.stroke();
+      ctx.beginPath(); ctx.arc(g.hs.rot[0], g.hs.rot[1], 9, 0, 6.2832); ctx.fill(); ctx.stroke();
+    }
+    const s = g.hs.scale;
+    ctx.fillRect(s[0] - 8, s[1] - 8, 16, 16); ctx.strokeRect(s[0] - 8, s[1] - 8, 16, 16);
+    ctx.restore();
+  }
+
+  /* ---------- decorations ---------- */
+  const decorEmojis = () => DECOR[st.occ] || DECOR.Custom;
+  function addMany(list, msg) { list.forEach(o => st.objs.push(o)); st.sel = -1; pushHist(); render(); say(msg); }
+  function addBunting() {
+    addObj({ t: 'bunting', x: W / 2, y: 5, w: W - 40, c: inkCol() });
+    say('Bunting added. Use Move to drag it or change its size.');
+  }
+  function addEmojiBorder() {
+    const d = decorEmojis(), list = [], m = 34, nx = 12, ny = 7;
+    let k = 0;
+    const put = (x, y) => { list.push({ t: 'stamp', e: d[k % d.length], x: Math.round(x), y: Math.round(y), s: 44, r: ((k * 37) % 25) - 12 }); k++; };
+    for (let i = 0; i < nx; i++) put(m + (W - 2 * m) * i / (nx - 1), m);
+    for (let i = 1; i < ny; i++) put(W - m, m + (H - 2 * m) * i / (ny - 1));
+    for (let i = nx - 2; i >= 0; i--) put(m + (W - 2 * m) * i / (nx - 1), H - m);
+    for (let i = ny - 2; i >= 1; i--) put(m, m + (H - 2 * m) * i / (ny - 1));
+    addMany(list, 'Emoji border added. Undo removes it in one step.');
+  }
+  function sprinkle() {
+    const pool = ['✨', '⭐'].concat(decorEmojis()), list = [];
+    for (let i = 0; i < 16; i++) {
+      list.push({ t: 'stamp', e: pool[i % pool.length], x: Math.round(40 + Math.random() * (W - 80)), y: Math.round(40 + Math.random() * (H - 80)),
+                  s: 24 + Math.round(Math.random() * 26), r: Math.round(Math.random() * 60 - 30) });
+    }
+    addMany(list, 'Sparkles added. Undo removes them in one step.');
+  }
+
+  /* ---------- recent colours ---------- */
+  function noteRecent(c) {
+    if (!/^#[0-9a-f]{6}$/i.test(c)) return;
+    c = c.toLowerCase();
+    recents = [c].concat(recents.filter(x => x !== c)).slice(0, 8);
+    renderRecents();
+    try { localStorage.setItem(KEY + '-recent', JSON.stringify(recents)); } catch (e) {}
+  }
+  function renderRecents() {
+    const box = $('#recents'); box.textContent = '';
+    recents.forEach(c => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'sw'; b.style.background = c; b.dataset.c = c;
+      b.setAttribute('aria-label', 'Recent colour ' + c);
+      b.addEventListener('click', () => pickInk(c, true));
+      box.appendChild(b);
+    });
+    box.hidden = recents.length === 0;
+    markColor();
+  }
+
+  /* ---------- share link ---------- */
+  const toB64u = buf => {
+    const a = new Uint8Array(buf); let t = '';
+    for (let i = 0; i < a.length; i += 8192) t += String.fromCharCode.apply(null, a.subarray(i, i + 8192));
+    return btoa(t).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  };
+  const fromB64u = t => {
+    t = t.replace(/-/g, '+').replace(/_/g, '/'); while (t.length % 4) t += '=';
+    const bin = atob(t), a = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+    return a;
+  };
+  async function pack(text) {
+    if (!('CompressionStream' in window)) return 'p' + toB64u(new TextEncoder().encode(text));
+    const cs = new Blob([text]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+    return 'z' + toB64u(await new Response(cs).arrayBuffer());
+  }
+  async function unpack(code) {
+    const kind = code[0], bytes = fromB64u(code.slice(1));
+    if (kind === 'p') return new TextDecoder().decode(bytes);
+    if (kind !== 'z' || !('DecompressionStream' in window)) throw new Error('unsupported');
+    const rd = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader(), parts = [];
+    let n = 0;
+    for (;;) {
+      const r = await rd.read();
+      if (r.done) break;
+      n += r.value.length;
+      if (n > 2e6) { try { rd.cancel(); } catch (e) {} throw new Error('too big'); }
+      parts.push(r.value);
+    }
+    return new TextDecoder().decode(await new Blob(parts).arrayBuffer());
+  }
+  function slim(o) {
+    const c = JSON.parse(JSON.stringify(o)), r1 = v => Math.round(v * 10) / 10;
+    if (c.pts) {
+      const out = []; let lx = -99, ly = -99;
+      c.pts.forEach((p, i) => {
+        const x = Math.round(p[0]), y = Math.round(p[1]);
+        if (i === 0 || i === c.pts.length - 1 || Math.hypot(x - lx, y - ly) >= 3) { out.push([x, y]); lx = x; ly = y; }
+      });
+      c.pts = out;
+    }
+    ['x', 'y', 'x1', 'y1', 'x2', 'y2'].forEach(k => { if (typeof c[k] === 'number') c[k] = Math.round(c[k]); });
+    ['s', 'size', 'w', 'h', 'r'].forEach(k => { if (typeof c[k] === 'number') c[k] = r1(c[k]); });
+    return c;
+  }
+  async function buildShareUrl() {
+    const sn = snapshot(false);
+    const data = { v: 3, occ: sn.occ, paper: sn.paper, paperColor: sn.paperColor, frame: sn.frame, to: sn.to, from: sn.from, color: sn.color,
+                   objs: sn.objs.map(slim), inside: sn.inside.map(slim) };
+    const code = await pack(JSON.stringify(data));
+    return { url: location.href.split('#')[0] + '#card=' + code, len: code.length, photos: st.objs.concat(st.other).some(o => o.t === 'img') };
+  }
+
+  const dlgEl = $('#shareDlg');
+  let shareUrl = '', lastFocus = null;
+  async function openShare() {
+    if (openActive || viewer) return;
+    let r;
+    try { r = await buildShareUrl(); } catch (e) { say('Could not make a link for this card.'); return; }
+    if (r.len > 40000) { say('This card is too detailed for a link. Save it as an image instead.'); return; }
+    shareUrl = r.url;
+    const notes = [];
+    if (r.len > 7000) notes.push('This card is very detailed, so the link is long and some apps may cut it off. Saving it as an image is safer.');
+    if (r.photos) notes.push('Photos are not included in links. Use "Save both sides as one image" to share a card with photos.');
+    if (location.protocol === 'file:') notes.push('This link only works on this computer. Put the app on a website, for example GitHub Pages, so other people can open it.');
+    else if (window.claude) notes.push('If you are using this page inside Claude, open the link in a new tab to check it before sending it.');
+    $('#shareNote').textContent = notes.join(' ') || 'Anyone with this link sees your card arrive in an envelope. Nothing is uploaded: the card is inside the link.';
+    $('#shareUrl').value = shareUrl; $('#shareMsg').textContent = '';
+    $('#nativeShare').hidden = !navigator.share;
+    $('#shareImg').hidden = !(navigator.canShare && navigator.share);
+    lastFocus = document.activeElement;
+    document.querySelector('.app').inert = true;
+    dlgEl.hidden = false;
+    $('#copyLink').focus(); $('#shareUrl').select();
+  }
+  function closeShare() {
+    if (dlgEl.hidden) return;
+    dlgEl.hidden = true; document.querySelector('.app').inert = false;
+    try { if (lastFocus) lastFocus.focus({ preventScroll: true }); } catch (e) {}
+  }
+  async function copyShare() {
+    let ok = false;
+    try { await navigator.clipboard.writeText(shareUrl); ok = true; } catch (e) {}
+    if (!ok) { try { $('#shareUrl').focus(); $('#shareUrl').select(); ok = document.execCommand('copy'); } catch (e) {} }
+    $('#shareMsg').textContent = ok ? 'Link copied.' : 'Press Ctrl+C (or hold and copy) to copy the selected link.';
+    if (ok) chime();
+  }
+  async function shareImage() {
+    render(false);
+    const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
+    render(true);
+    if (!blob) return;
+    const file = new File([blob], baseName() + '-' + st.side + '.png', { type: 'image/png' });
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: 'A card for you' });
+      else $('#shareMsg').textContent = 'This browser cannot share pictures directly. Use Save as PNG instead.';
+    } catch (e) {}
+  }
+
+  /* ---------- opening screen ---------- */
+  const openEl = $('#open'), appEl = document.querySelector('.app'), envEl = $('#env');
+  const reduceMotion = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  let openActive = true, opening = false, openOcc = st.occ;
+  appEl.inert = true;
+
+  const hr = new Date().getHours();
+  const hello = hr < 5 ? 'Good night' : hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : hr < 22 ? 'Good evening' : 'Good night';
+  let today = '';
+  try { today = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) {}
+  $('#openLine').textContent = hello + '.' + (today ? ' Today is ' + today + '.' : '');
+
+  function updateMini() {
+    const o = OCC[openOcc], n = $('#openName').value.trim(), m = $('#miniCard');
+    m.style.background = o.paper; m.style.color = o.ink;
+    $('#miniHead').textContent = o.head + (n ? ', ' + n : '') + '!';
+    $('#miniEmoji').textContent = o.stamp;
+    document.querySelectorAll('.ochip').forEach(b => b.setAttribute('aria-checked', String(b.dataset.occ === openOcc)));
+  }
+  Object.keys(OCC).forEach(name => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'ochip'; b.setAttribute('role', 'radio'); b.dataset.occ = name;
+    b.innerHTML = '<i style="background:' + OCC[name].paper + '"></i><span></span>';
+    b.lastChild.textContent = name;
+    b.addEventListener('click', () => { openOcc = name; updateMini(); });
+    $('#ochips').appendChild(b);
+  });
+  $('#openName').value = st.to;
+  $('#openName').addEventListener('input', updateMini);
+  $('#openName').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); enterStudio(restored ? 'new' : 'new'); } });
+  if (restored) { $('#openCont').hidden = false; $('#openGo').textContent = 'Start a new card'; }
+  updateMini();
+
+  const BALLOONS = ['#FF5C7A', '#FFB400', '#2EC4B6', '#4D7CFE', '#9B5DE5', '#FF8A3D', '#5BD68B'];
+  for (let i = 0; i < 9; i++) {
+    const b = document.createElement('div'), r = Math.random;
+    b.className = 'balloon';
+    b.style.left = ((i * 11 + r() * 7) % 94) + '%';
+    b.style.setProperty('--w', (44 + r() * 34).toFixed(0) + 'px');
+    b.style.setProperty('--c', BALLOONS[i % BALLOONS.length]);
+    b.style.setProperty('--d', (12 + r() * 9).toFixed(1) + 's');
+    b.style.setProperty('--dl', '-' + (r() * 16).toFixed(1) + 's');
+    b.style.setProperty('--sw', ((r() - .5) * 90).toFixed(0) + 'px');
+    b.style.setProperty('--bot', (8 + r() * 55).toFixed(0) + '%');
+    $('#balloons').appendChild(b);
+  }
+
+  if (!reduceMotion) {
+    const fx = $('#openFx'), c = fx.getContext('2d'), cols = ['#FF5C7A', '#FFB400', '#2EC4B6', '#4D7CFE', '#9B5DE5', '#FFFFFF'];
+    let w = 0, h = 0;
+    const size = () => {
+      const d = Math.min(2, window.devicePixelRatio || 1);
+      w = window.innerWidth; h = window.innerHeight;
+      fx.width = Math.round(w * d); fx.height = Math.round(h * d); c.setTransform(d, 0, 0, d, 0, 0);
+    };
+    size(); window.addEventListener('resize', size);
+    const P = [];
+    for (let i = 0; i < 70; i++) {
+      P.push({ x: Math.random() * w, y: Math.random() * h, s: 5 + Math.random() * 7, v: .4 + Math.random(), a: Math.random() * 6.28,
+               va: (Math.random() - .5) * .05, sw: Math.random() * 6.28, c: cols[i % cols.length] });
+    }
+    (function loop() {
+      if (!openActive) return;
+      c.clearRect(0, 0, w, h);
+      P.forEach(p => {
+        p.y += p.v; p.a += p.va; p.sw += .02; p.x += Math.sin(p.sw) * .4;
+        if (p.y > h + 10) { p.y = -10; p.x = Math.random() * w; }
+        c.save(); c.translate(p.x, p.y); c.rotate(p.a); c.globalAlpha = .8; c.fillStyle = p.c;
+        c.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); c.restore();
+      });
+      requestAnimationFrame(loop);
+    })();
+  }
+
+  function enterStudio(mode) {
+    if (opening || shareWait) return;
+    opening = true;
+    $('#openGo').disabled = true; $('#openCont').disabled = true; $('#viewGo').disabled = true;
+    if (mode === 'new') {
+      st.occ = openOcc; st.to = $('#openName').value.trim().slice(0, 40);
+      st.paperColor = null; st.paper = PAT[openOcc]; st.color = OCC[openOcc].ink; st.stamp = OCC[openOcc].stamp;
+      st.wishIdx = 0; st.sel = -1; st.objs = sampleObjs(); st.side = 'front'; st.other = defaultInside();
+      syncControls(); resetHist(); render();
+      say('Your card is ready. Draw on it, add photos, or press Clear card for blank paper.');
+    } else if (mode === 'view') {
+      say('A card for you. Use Front and Inside to look at both sides.');
+    } else {
+      say('Welcome back. Your last card is loaded.');
+    }
+    const finish = () => {
+      openActive = false; openEl.hidden = true; appEl.inert = false;
+      try { (viewer ? $('#tabFront') : document.querySelector('.tool[aria-pressed="true"]')).focus({ preventScroll: true }); } catch (e) {}
+      if (!reduceMotion) celebrate();
+    };
+    if (reduceMotion) { finish(); return; }
+    envEl.classList.add('is-open');
+    setTimeout(() => openEl.classList.add('is-leaving'), 1700);
+    setTimeout(finish, 2400);
+  }
+  $('#openGo').addEventListener('click', () => enterStudio('new'));
+  $('#openCont').addEventListener('click', () => enterStudio('continue'));
+  envEl.addEventListener('click', () => enterStudio(openMode()));
+  envEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); enterStudio(openMode()); } });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && openActive) enterStudio(openMode()); });
+  try { $('#openGo').focus({ preventScroll: true }); } catch (e) {}
+
+  /* ---------- recipient view: a card opened from a share link ---------- */
+  const shareCode = (() => { const m = /^#card=([A-Za-z0-9_-]{1,40000})$/.exec(location.hash); return m ? m[1] : null; })();
+  let shareWait = !!shareCode;
+  const openMode = () => viewer ? 'view' : (restored ? 'continue' : 'new');
+  if (shareCode) {
+    $('.open-form').hidden = true; $('#viewOpen').hidden = false;
+    $('.eyebrow').textContent = 'Wish Card Studio';
+    $('#openTitle').textContent = 'A card for you';
+    $('.env-hint').textContent = 'Tap the envelope to open it.';
+    $('#openLine').textContent = 'Someone made this card for you.';
+    (async () => {
+      try {
+        const d = JSON.parse(await unpack(shareCode));
+        if (!d || !Array.isArray(d.objs) || d.objs.length > 4000 || (Array.isArray(d.inside) && d.inside.length > 4000) || !loadState(d)) throw new Error('bad');
+        viewer = true; clearTimeout(pt);
+        document.body.classList.add('is-viewer');
+        openOcc = st.occ; $('#openName').value = st.to; updateMini();
+        syncControls(); resetHist(); render();
+        $('#openLine').textContent = st.from ? 'With love from ' + st.from : 'Someone is thinking of you.';
+        $('#viewMsg').textContent = (st.to ? 'A card for ' + st.to : 'A card for you') + (st.from ? ', from ' + st.from : '') + '. Made with Wish Card Studio.';
+        $('#viewGo').textContent = 'Open your card'; $('#viewGo').disabled = false;
+        say('A card for you. Use Front and Inside to look at both sides.');
+      } catch (e) {
+        $('.open-form').hidden = false; $('#viewOpen').hidden = true;
+        $('#openTitle').textContent = 'Wish Card Studio';
+        $('#openLine').textContent = hello + '.' + (today ? ' Today is ' + today + '.' : '');
+        $('.env-hint').textContent = 'That card link could not be read, so the studio opened instead.';
+        try { history.replaceState(null, '', location.href.split('#')[0]); } catch (e2) {}
+      }
+      shareWait = false;
+    })();
+  }
+  $('#viewGo').addEventListener('click', () => enterStudio('view'));
+  $('#makeOwn').addEventListener('click', () => { try { location.href = location.href.split('#')[0]; } catch (e) {} });
+  $('#editCopy').addEventListener('click', () => {
+    viewer = false; document.body.classList.remove('is-viewer'); cv.style.cursor = '';
+    try { history.replaceState(null, '', location.href.split('#')[0]); } catch (e) {}
+    syncControls(); updateButtons(); render();
+    say('You are editing your own copy now. Your changes replace the card saved in this browser.');
+  });
+  $('#viewBoth').addEventListener('click', saveBoth);
+
+  /* ---------- decorate, share, print, colours ---------- */
+  $('#decoBunting').addEventListener('click', addBunting);
+  $('#decoBorder').addEventListener('click', addEmojiBorder);
+  $('#decoSprinkle').addEventListener('click', sprinkle);
+  $('#shareBtn').addEventListener('click', openShare);
+  $('#copyLink').addEventListener('click', copyShare);
+  $('#nativeShare').addEventListener('click', () => { navigator.share({ title: 'A card for you', text: 'I made you a card.', url: shareUrl }).catch(() => {}); });
+  $('#shareImg').addEventListener('click', shareImage);
+  $('#shareClose').addEventListener('click', closeShare);
+  dlgEl.addEventListener('click', e => { if (e.target === dlgEl) closeShare(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeShare(); });
+  window.addEventListener('beforeprint', () => render(false));
+  window.addEventListener('afterprint', () => render(true));
+  $('#printBtn').addEventListener('click', () => { say('Printing the ' + st.side + ' of the card.'); try { window.print(); } catch (e) {} });
+
+  try {
+    const r = JSON.parse(localStorage.getItem(KEY + '-recent') || '[]');
+    if (Array.isArray(r)) recents = r.filter(c => /^#[0-9a-f]{6}$/i.test(c)).slice(0, 8);
+  } catch (e) {}
+  renderRecents();
+  if ('EyeDropper' in window) {
+    $('#eyedrop').hidden = false;
+    $('#eyedrop').addEventListener('click', () => {
+      new EyeDropper().open().then(r => pickInk(r.sRGBHex, true)).catch(() => {});
+    });
+  }
+
+  /* lettering fonts: load them, then redraw so the card uses them */
+  Promise.all(Object.keys(FONTS).map(f => document.fonts.load(fontStr(f, 40)).catch(() => null)))
+    .then(() => { if (syncGreeting()) hist[hi] = JSON.stringify(st.objs); render(); });
+  render();
+})();
+</script>
+</body>
+</html>
